@@ -1,10 +1,10 @@
 #include <Arduino.h>
-#include "writer.hpp"
+#include "Writer.hpp"
 
-writer::writer(unsigned int interval, printer& printer): 
+Writer::Writer(unsigned int interval, Printer& printer): 
 interval(interval), timeLapsed(0), _printer(printer) {}
 
-void writer::update(const unsigned int time){
+void Writer::update(const unsigned int time){
     timeLapsed += time;
     if(timeLapsed < interval) return;
     timeLapsed -= interval;

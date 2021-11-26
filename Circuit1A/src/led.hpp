@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-class led {
+class Led {
     byte pin;
     bool ledOn;
     unsigned int timeLapsed;
@@ -12,9 +12,9 @@ class led {
     unsigned int interval;
 
 public:
-    led(byte pin, unsigned int interval);
-    led(byte pin, unsigned int intervalOn, unsigned int intervalOff);
-    ~led() = default;
+    Led(byte pin, unsigned int interval);
+    Led(byte pin, unsigned int intervalOn, unsigned int intervalOff);
+    ~Led() = default;
 
     void update(const unsigned int);
 };

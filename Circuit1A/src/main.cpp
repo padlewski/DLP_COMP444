@@ -1,13 +1,14 @@
 #include <Arduino.h>
-#include "timer.hpp"
-#include "led.hpp"
-#include "timer_printer.cpp"
+#include "Timer.hpp"
+#include "Led.hpp"
+#include "TimerPrinter.cpp"
 
-int potPosition;
-led _led(13, 50, 40000);
-timer clock;
-timer_printer printer(clock);
-writer _writer(2000, printer);
+//Led led(13, 10); // LED starts to flicker Onboard ok
+//Led led(13, 12); // Onboard LED starts to flicker
+Led led(13, 10, 10000);
+Timer clock;
+TimerPrinter printer(clock);
+Writer writer(2000, printer);
 
 void setup() {
   Serial.begin(9600);
@@ -15,6 +16,6 @@ void setup() {
 
 void loop() {
   clock.tick();
-  _led.update(clock.getDeltaUs());
-  _writer.update(clock.getDeltaMs());
+  led.update(clock.getDeltaUs());
+  writer.update(clock.getDeltaMs());
 }

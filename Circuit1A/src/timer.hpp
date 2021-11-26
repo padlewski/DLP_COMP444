@@ -1,7 +1,7 @@
 #ifndef TIMER_HPP
 #define TIMER_HPP
 
-class timer {
+class Timer {
     unsigned long previousUs;
     unsigned long previousMs;
     unsigned int deltaUs;
@@ -12,8 +12,8 @@ class timer {
     unsigned int *statsDeltaMs;
 
 public:
-    timer();
-    ~timer();
+    Timer();
+    ~Timer();
 
     void tick();
     const unsigned int &tickUs();

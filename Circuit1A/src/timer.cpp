@@ -1,17 +1,17 @@
 #include <Arduino.h>
-#include "timer.hpp"
+#include "Timer.hpp"
 
-timer::timer():
+Timer::Timer():
 previousMs(0), previousUs(0), deltaUs(0), deltaMs(0), size(30), i(0),
 statsDeltaUs(new unsigned int[this->size]()),
 statsDeltaMs(new unsigned int[this->size]()) {}
 
-timer::~timer(){
+Timer::~Timer(){
     delete[] statsDeltaUs;
     delete[] statsDeltaMs;
 }
 
-void timer::tick(){
+void Timer::tick(){
     unsigned long timeMs = millis();
     unsigned long timeUs = micros();
     // TODO: Handle overflow
@@ -29,25 +29,25 @@ void timer::tick(){
     }
 }
 
-const unsigned int &timer::tickMs() {
+const unsigned int &Timer::tickMs() {
     tick();
     return deltaMs;
 }
 
-const unsigned int &timer::tickUs() {
+const unsigned int &Timer::tickUs() {
     tick();
     return deltaUs;
 }
 
-const unsigned int &timer::getDeltaUs(){
+const unsigned int &Timer::getDeltaUs(){
     return deltaUs;
 }
 
-const unsigned int &timer::getDeltaMs(){
+const unsigned int &Timer::getDeltaMs(){
     return deltaMs;
 }
 
-unsigned int timer::getRateUs(){
+unsigned int Timer::getRateUs(){
     unsigned int avg;
     for(unsigned int i = 0 ; i < size ; ++i) {
         avg += statsDeltaUs[i];
@@ -55,7 +55,7 @@ unsigned int timer::getRateUs(){
     return avg / size; 
 }
 
-unsigned int timer::getRateMs(){
+unsigned int Timer::getRateMs(){
     unsigned int avg;
     for(unsigned int i = 0 ; i < size ; ++i) {
         avg += statsDeltaMs[i];

@@ -1,19 +1,19 @@
 #ifndef WRITER_HPP
 #define WRITER_HPP
 
-class printer {
+class Printer {
 public:
     virtual void print() = 0;
 };
 
-class writer {
+class Writer {
     unsigned int timeLapsed;
     unsigned int interval;
-    printer &_printer;
+    Printer &_printer;
 
 public:
-    writer(unsigned int interval, printer&);
-    ~writer() = default;
+    Writer(unsigned int interval, Printer&);
+    ~Writer() = default;
     void update(const unsigned int);
 };
 
