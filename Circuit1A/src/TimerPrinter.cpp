@@ -3,7 +3,8 @@
 #include "Writer.hpp"
 
 /*
- * A class to 
+ * A class to print out information related to the 
+ * timer.
  */
 class TimerPrinter: public Printer {
     Timer& _timer;
