@@ -3,6 +3,7 @@
 
 #include "writer.hpp"
 
+// Modifed to update stats only if statsResolution is provided
 class Timer {
     unsigned long previousUs;
     unsigned long previousMs;

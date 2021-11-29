@@ -19,6 +19,7 @@ void Timer::tick(){
     deltaUs = (unsigned int)(timeUs - previousUs);
     previousMs = timeMs;
     previousUs = timeUs;
+    // Update statistics
     ++i;
     if(i >= size) i = 0;
     statsDeltaMs[i] = deltaMs;
@@ -39,13 +40,9 @@ const unsigned int &Timer::tickUs() {
     return deltaUs;
 }
 
-const unsigned int &Timer::getDeltaUs(){
-    return deltaUs;
-}
+const unsigned int &Timer::getDeltaUs(){ return deltaUs; }
 
-const unsigned int &Timer::getDeltaMs(){
-    return deltaMs;
-}
+const unsigned int &Timer::getDeltaMs(){ return deltaMs; }
 
 unsigned int Timer::getRateUs(){
     unsigned int avg;

@@ -16,9 +16,8 @@ public:
         return *value;
     }
 
-    const int * getValue() {
-        return value;
-    }
+    // Gets a pointer to the current value in the pot
+    const int * getValue() { return value; }
 };
 
 /*

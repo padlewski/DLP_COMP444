@@ -41,13 +41,9 @@ const unsigned int &Timer::tickUs() {
     return deltaUs;
 }
 
-const unsigned int &Timer::getDeltaUs(){
-    return deltaUs;
-}
+const unsigned int &Timer::getDeltaUs() { return deltaUs; }
 
-const unsigned int &Timer::getDeltaMs(){
-    return deltaMs;
-}
+const unsigned int &Timer::getDeltaMs(){ return deltaMs; }
 
 unsigned int Timer::getRateUs(){
     if(not size) return deltaUs;

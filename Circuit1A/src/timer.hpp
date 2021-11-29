@@ -8,6 +8,7 @@ class Timer {
     unsigned int deltaMs;
     unsigned int size;
     unsigned int i;
+    // Arrays used for statistical calcs
     unsigned int *statsDeltaUs;
     unsigned int *statsDeltaMs;
 
