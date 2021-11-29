@@ -4,3 +4,4 @@ Repo for COMP444 sketches
 SparkFun Inventor's Kit exercises
 
 * [Circuit 1A](Circuit1A)
+* [Circuit 1B](Circuit1B)

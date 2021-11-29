@@ -1,6 +1,8 @@
 #ifndef TIMER_HPP
 #define TIMER_HPP
 
+#include "writer.hpp"
+
 class Timer {
     unsigned long previousUs;
     unsigned long previousMs;
@@ -23,6 +25,23 @@ public:
     const unsigned int &getDeltaMs();
     unsigned int getRateUs();
     unsigned int getRateMs();
+};
+
+/*
+ * A class to print out information related to the 
+ * timer.
+ */
+class TimerPrinter: public Printer {
+    Timer& timer;
+public:
+    TimerPrinter(Timer& timer): timer(timer) {}
+    ~TimerPrinter() = default;
+    void print() override {
+        Serial.print("Timer deltaUs: ");
+        Serial.print(timer.getRateUs());
+        Serial.print(" | Timer deltaMs: ");
+        Serial.println(timer.getRateMs());
+    }
 };
 
 #endif //TIMER_HPP
