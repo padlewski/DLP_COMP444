@@ -18,4 +18,4 @@ The additional experiment from the guide was run to treat the photoresistor like
 
 The following video shows the results of the experiment.
 
-[![Potoresistor Experiment](doc/C1C_Intro.png)](https://youtu.be/T8ByeexY0LM "1C Experiment Video")
+[![Photoresistor Experiment](doc/C1C_Intro.png)](https://youtu.be/T8ByeexY0LM "1C Experiment Video")
