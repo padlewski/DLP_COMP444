@@ -21,4 +21,4 @@ This experiment uses the same code as experiment 1, but plays around with some s
 
 Here is the video... unlike previous videos, this one does include audio.
 
-[![RGB LED Experiments](doc/2A_VidIntro.jpg)](https://youtu.be/OJg7f2IWcTM "1A Buzzer Song")
+[![Buzzer SontRGB LED Experiments](doc/2A_VidIntro.jpg)](https://youtu.be/OJg7f2IWcTM "2A Buzzer Song")
