@@ -11,12 +11,15 @@ The setup of the first circuit:
 
 [1]: doc/1B_CircuitWiring.jpg "1B Initial Circuit Wiring"
 
+### Experiment 1
 The experiment was to connect the value of the potentiometer (pot) to the value in the `delay(ms)` to control the rate the LED flashes based on the pot's setting. The first run included the code from the [SparkFun git repo](https://github.com/sparkfun/SIK-Guide-Code/blob/master/SIK_Circuit_1B-Potentiometer/SIK_Circuit_1B-Potentiometer.ino) moved into the PlatformIO format.
 
 My first modification was to incorporate the use of classes and timer: LED, Timer, Potentiometer, Writer. The LED's time delay was bound to the value by both class accessing a raw pointer. The Writer class was modified to print to `Serial` by multiple Printer implementation through an array of pointers. The next modification was to include a number of `#ifdef` statements and use the `platformio.ini` and `build_flags` ([See PlatformIO doc](https://docs.platformio.org/en/latest/projectconf/section_env_build.html?highlight=build%20flags#build-flags)). This format allows for the inclusion of multiple experiments in the `main.cpp` file. 
 
+### Experiment 2
 The next experiment was to apply some sort of change, or mutation of the pot's value to exert additional control over the LED. For this I decided to do something like the dimming in the circuit 1A experiment. The value was still bound the LED; however, the on cycle was set to 20us and the pot value was scaled by a factor of 10. This would have the off cycle from 0us to 10240us allowing for reasonable dimming control.
 
+### Experiment 3
 The final experiment included the use of additional LEDs with the rest of the circuit remaining the same. The new LEDs were wired to analog pins 12, 11, and 10.
 
 ![Modified Wiring Photo][2]
