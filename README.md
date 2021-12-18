@@ -9,3 +9,4 @@ SparkFun Inventor's Kit exercises
 * [Circuit 1D](Circuit1D)
 * [Circuit 2A](Circuit2A)
 * [Circuit 2B](Circuit2B)
+* [Circuit 2C](Circuit2C)
