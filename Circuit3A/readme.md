@@ -11,7 +11,6 @@ For experiment 3:
 * Photoresistor ground to A2
 * Photoresistor ground to 10k ohm resistor
 
-
 ![Wiring Photo][1]
 
 [1]: doc/3A_Wiring.jpg "3A Circuit Wiring"
