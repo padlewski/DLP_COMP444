@@ -2,10 +2,14 @@ Implementation of circuit 2A from the Sparkfun Inventors Kit (SIK). Their origin
 View circuit diagram and instructions at: https://learn.sparkfun.com/tutorials/sparkfun-inventors-kit-experiment-guide---v41/circuit-3b-distance-sensor
 
 The setup for the experiments:
-* Servo positive to 5v
-* Servo negative to ground 
-* Servo signal to PWM 10
-* Potentiometer connected to A0
+* Distance Sensor positive to 5v
+* Distance Sensor negative to ground 
+* Distance Sensor trigger analog 11 (A11)
+* Distance Sensor echo to analog 12 (A12)
+* RGB LED red to 350 ohm resistor to analog 3 (A3)
+* RGB LED green to 350 ohm resistor to analog 5 (A5)
+* RGB LED blue to 350 ohm resistor to analog 6 (A6)
+* RFB LED negative to ground
 
 ![Wiring Photo][1]
 
