@@ -29,4 +29,4 @@ Changes to the distances which triggers the motion alarm.
 ### Experiment 2
 Change the motion of the servo. (both Experiment 1 and Experiment 2 can be defined at the same time)
 
-[![Motion Alarm Experiment](doc/3C_VidIntro.jpg)](https://youtu.be/kZaK2dpht7M "1C Motion Alarm Experiment Video")
+[![Motion Alarm Experiment](doc/3C_VideoIntro.jpg)](https://youtu.be/kZaK2dpht7M "3C Motion Alarm Experiment Video")
