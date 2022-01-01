@@ -22,7 +22,7 @@ The sparkfun code was downloaded and tested. No significant modifications were r
 Changes to the distances which update the light colours.
 
 ### Experiment 2
-The units are updated from inches to centimeters. The conversion constant was obtained from the [data sheet] (https://cdn.sparkfun.com/datasheets/Sensors/Proximity/HCSR04.pdf) for the distance sensor.
+The units are updated from inches to centimeters. The conversion constant was obtained from the [data sheet](https://cdn.sparkfun.com/datasheets/Sensors/Proximity/HCSR04.pdf) for the distance sensor.
 
 ### Experiment 3
 Added additional colours to the distance sensor and left the sensor in cm.
