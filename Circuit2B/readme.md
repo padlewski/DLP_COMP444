@@ -1,4 +1,4 @@
-Implementation of circuit 2A from the Sparkfun Inventors Kit (SIK). Their original source code can be found at the [SparkFun Git Repo](https://github.com/sparkfun/SIK-Guide-Code/blob/master/SIK_Circuit_2B-DigitalTrumpet).
+Implementation of circuit 2B from the Sparkfun Inventors Kit (SIK). Their original source code can be found at the [SparkFun Git Repo](https://github.com/sparkfun/SIK-Guide-Code/blob/master/SIK_Circuit_2B-DigitalTrumpet).
 View circuit diagram and instructions at: https://learn.sparkfun.com/tutorials/sparkfun-inventors-kit-experiment-guide---v41/circuit-2b-digital-trumpet
 
 The setup for the experiments:
