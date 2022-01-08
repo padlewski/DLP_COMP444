@@ -21,7 +21,7 @@ float distance = 0;            //variable to store the distance measured by the 
 
 //robot behaviour variables
 int backupTime = 300;           //amount of time that the robot will back up when it senses an object
-int turnTime = 200;             //amount that the robot will turn once it has backed up
+int turnTime = 300;             //amount that the robot will turn once it has backed up
 
 void rightMotor(int);
 void leftMotor(int);
@@ -61,7 +61,7 @@ void loop()
 
   if (digitalRead(switchPin) == LOW) { //if the on switch is flipped
 
-    if (distance < 30) {              //if an object is detected
+    if (distance < 20) {              //if an object is detected
       //back up and turn
       Serial.print(" ");
       Serial.print("BACK!");
@@ -72,13 +72,13 @@ void loop()
       delay(200);
 
       //back up
-      rightMotor(-150);
-      leftMotor(-150);
+      rightMotor(-250);
+      leftMotor(-250);
       delay(backupTime);
 
       //turn away from obstacle
-      rightMotor(150);
-      leftMotor(-150);
+      rightMotor(250);
+      leftMotor(-250);
       delay(turnTime);
 
     } else {                        //if no obstacle is detected drive forward
@@ -86,8 +86,8 @@ void loop()
       Serial.print("Moving...");
 
 
-      rightMotor(150);
-      leftMotor(150);
+      rightMotor(250);
+      leftMotor(250);
     }
   } else {                        //if the switch is off then stop
 

@@ -16,3 +16,6 @@ SparkFun Inventor's Kit exercises
 * [Circuit 4A](Circuit4A)
 * [Circuit 4B](Circuit4B)
 * [Circuit 5A](Circuit5A)
+* [Circuit 5B](Circuit5B)
+* [Circuit 5C](Circuit5C)
+* [Unit 3 Exercise](Unit3)
