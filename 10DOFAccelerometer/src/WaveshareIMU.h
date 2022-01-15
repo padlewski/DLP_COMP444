@@ -139,17 +139,51 @@ void IMU_GetYawPitchRoll(float *angles) {
 
 //from https://digilent.com/blog/how-to-convert-magnetometer-data-into-compass-heading/
 float getCompassDegrees(){
-    float gauss_x = toGauss(&MPU9250.magn[0]);
-    float gauss_y = toGauss(&MPU9250.magn[1]);
-    float gauss_z = toGauss(&MPU9250.magn[2]);
+    float gauss_x = toGauss(&MPU9250.magnRaw[0]);
+    float gauss_y = toGauss(&MPU9250.magnRaw[1]);
+    float gauss_z = toGauss(&MPU9250.magnRaw[2]);
     if(gauss_x == 0) {
         if(gauss_y < gauss_x) return 90.0f;
         else return 0.0f;
     }
-    float result = atan(gauss_y/gauss_z)*(180.0f/3.1415926535f);
+    float result = atan(gauss_y/gauss_x)*(180.0f/3.1415926535f);
     if(result > 360.0f) return result - 360.0f;
     if(result < 0.0f) return result + 360.0f;
     return result;
+}
+
+// Range should be 250, 500, 1000, 2000
+float toDegSec(const int *val, const int range){
+    static float RNG = float(range);
+    static float MIN = RNG * -1.0f;
+    static float INTV = RNG / 0x7FFF;
+    float result = float(*val) * INTV;
+    if(result > RNG) return RNG;
+    if(result < MIN) return MIN;
+    return result;
+}
+
+void IMU_GetDegSec(float xyz[3]) {
+    xyz[0] = toDegSec(&MPU9250.gyro[0], 1000);
+    xyz[1] = toDegSec(&MPU9250.gyro[1], 1000);
+    xyz[2] = toDegSec(&MPU9250.gyro[2], 1000);
+}
+
+// Range should be 2, 4, 8, 16
+float toGforce(const int *val, const int range){
+    static float RNG = float(range);
+    static float MIN = RNG * -1.0f;
+    static float INTV = RNG / 0x7FFF;
+    float result = float(*val) * INTV;
+    if(result > RNG) return RNG;
+    if(result < MIN) return MIN;
+    return result;
+}
+
+void IMU_GetGForce(float xyz[3]) {
+    xyz[0] = toGforce(&MPU9250.accel[0], 4);
+    xyz[1] = toGforce(&MPU9250.accel[1], 4);
+    xyz[2] = toGforce(&MPU9250.accel[2], 4);
 }
 
 // map from page 50 of RM-MPU-9255.pdf
@@ -158,7 +192,7 @@ float toGauss(const int *val) {
     static float MIN = -4912.0f;
     static float MAX = 4912.0f;
     static float interval = 0.15f;
-    float result = *val * interval;
+    float result = float(*val) * interval;
     if(result > MAX) return MAX;
     if(result < MIN) return MIN;
     return result;

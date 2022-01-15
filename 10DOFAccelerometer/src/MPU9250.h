@@ -23,6 +23,7 @@ typedef struct {
 
 struct {
     int magn[3];
+    int magnRaw[3];
     int accel[3];
     int accelRaw[3];
     int gyro[3];
@@ -36,7 +37,7 @@ struct {
 static const byte   SMPLRT_DIV		= 0x19;	// Sample Rate Divider. Typical values:0x07(125Hz) 1KHz internal sample rate
 static const byte   CONFIG			= 0x1A;	// Low Pass Filter.Typical values:0x06(5Hz)
 static const byte   GYRO_CONFIG		= 0x1B;	// Gyro Full Scale Select. Typical values:0x10(1000dps)
-static const byte   ACCEL_CONFIG	= 0x1C;	// Accel Full Scale Select. Typical values:0x01(2g)
+static const byte   ACCEL_CONFIG	= 0x1C;	// Accel Full Scale Select. Typical values:0x08(4g)
 
 // Config pin [Bit 7 = ACTL | Bit 6 = OPEN | Bit 5 = LATCH _INT_EN | Bit 4 = NT_ANYRD_2CLEAR | Bit 3 = ACTL_FSYNC | Bit 2 = FSYNC_INT_MODE_EN | Bit 1 = BYPASS_EN | Bit 0 = Not]
 static const byte   INT_PIN_CFG     = 0x37;
@@ -70,7 +71,7 @@ static const byte PWR_MGMT_1		= 0x6B;	// Power Management. Typical values:0x00(r
 static const byte WHO_AM_I		    = 0x75;	// identity of the device
 
 static const byte GYRO_ADDRESS      = B1101000;	// Gyro and Accel device address
-static const byte MAG_ADDRESS       = B1101000; // compass device address
+static const byte MAG_ADDRESS       = B0001100; // compass device address
 static const byte ACCEL_ADDRESS     = B1101000; //B1101000; // accellorometer device address
 
 static const byte ADDRESS_AD0_LOW   = 0xD0; // address pin low (GND), default for InvenSense evaluation board
@@ -86,11 +87,13 @@ void MPU9250_READ_GYRO(void);
 void MPU9250_READ_MAG(void);
 
 void MPU9250_Init(void) {
-    writeByte(&GYRO_ADDRESS, &PWR_MGMT_1, 0x00);
-	writeByte(&GYRO_ADDRESS, &SMPLRT_DIV, 0x07);
+    writeByte(&GYRO_ADDRESS, &PWR_MGMT_1, 0x00); // internal 20MHz oscillator
+	writeByte(&GYRO_ADDRESS, &SMPLRT_DIV, 0x07); // 1kHz / 1 + this value (7)
 	writeByte(&GYRO_ADDRESS, &CONFIG, 0x06);
-	writeByte(&GYRO_ADDRESS, &GYRO_CONFIG, 0x10);
-	writeByte(&GYRO_ADDRESS, &ACCEL_CONFIG, 0x01);
+    // Set the gyro to resolution to +-1000 dps (controlled by bits 3 and 4)
+	writeByte(&GYRO_ADDRESS, &GYRO_CONFIG, B00010000);
+    // Set the accel config to a resolution of 4g (conrolled by bits 3 and 4)
+	writeByte(&GYRO_ADDRESS, &ACCEL_CONFIG, B00001000);
 	
 	delay(35); // small delay for initialization
 	
@@ -126,20 +129,19 @@ void MPU9250_READ_GYRO(void)    {
 }
 
 void MPU9250_READ_MAG(void) { 
-	int InBuffer[3] = {0}; 
 	static int OutBuffer[3] = {0};
 	static MPU9250_AvgTypeDef MPU9250_Filter[3];
 
-    writeByte(&GYRO_ADDRESS, &INT_PIN_CFG, 0x02);//turn on Bypass Mode 
+    writeByte(&GYRO_ADDRESS, &INT_PIN_CFG, 0x02); //turn on Bypass Mode 
     delay(10);
     writeByte(&MAG_ADDRESS, &MAG_CTRL, 0x01);	
     delay(10);
-    read2BytesHigh(&MAG_ADDRESS, &MAG_XOUT_H, &InBuffer[0]);
-    read2BytesHigh(&MAG_ADDRESS, &MAG_YOUT_H, &InBuffer[1]);
-    read2BytesHigh(&MAG_ADDRESS, &MAG_ZOUT_H, &InBuffer[2]);
-    InBuffer[2] = -InBuffer[2];
+    read2BytesHigh(&MAG_ADDRESS, &MAG_XOUT_H, &MPU9250.magnRaw[0]);
+    read2BytesHigh(&MAG_ADDRESS, &MAG_YOUT_H, &MPU9250.magnRaw[1]);
+    read2BytesHigh(&MAG_ADDRESS, &MAG_ZOUT_H, &MPU9250.magnRaw[2]);
+    MPU9250.magnRaw[2] = -MPU9250.magnRaw[2];
     for(byte i = 0; i < 3; i ++) {
-        OutBuffer[i] = MPU9250_CalAvgValue(&MPU9250_Filter[i].Index, MPU9250_Filter[i].AvgBuffer, InBuffer[i]);
+        OutBuffer[i] = MPU9250_CalAvgValue(&MPU9250_Filter[i].Index, MPU9250_Filter[i].AvgBuffer, MPU9250.magnRaw[i]);
     } 
 	MPU9250.magn[0] = OutBuffer[0] - MPU9250.magn_OffsetErr.X;
 	MPU9250.magn[1] = OutBuffer[1] - MPU9250.magn_OffsetErr.Y;

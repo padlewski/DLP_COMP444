@@ -6,6 +6,8 @@
 
 int rate = 115200;
 float PYR[3];
+float degSec[3];
+float gForce[3];
 unsigned int sensorCnt;
 unsigned int printCnt;
 
@@ -39,29 +41,33 @@ void printData(void) {
   if(printCnt < 5000) return;
   Serial.println("==============================");
   IMU_GetYawPitchRoll(PYR);
+  IMU_GetDegSec(degSec);
+  IMU_GetGForce(gForce);
   Serial.print("PYR: ");
   Serial.print(PYR[0]);
   Serial.print(" | ");
   Serial.print(PYR[1]);
   Serial.print(" | ");
   Serial.println(PYR[2]);
-  Serial.print("Gyro XYZ: ");
-  Serial.print(MPU9250.gyro[0]);
+  Serial.print("Gyro deg sec: ");
+  Serial.print(degSec[0]);
   Serial.print(" | ");
-  Serial.print(MPU9250.gyro[1]);
+  Serial.print(degSec[1]);
   Serial.print(" | ");
-  Serial.println(MPU9250.gyro[2]);
-  Serial.print("Accel X: ");
-  Serial.print(MPU9250.accel[0]);
+  Serial.println(degSec[2]);
+  Serial.print("Accel gForce: ");
+  Serial.print(gForce[0]);
   Serial.print(" | ");
-  Serial.print(MPU9250.accel[1]);
+  Serial.print(gForce[1]);
   Serial.print(" | ");
-  Serial.println(MPU9250.accel[2]);
+  Serial.println(gForce[2]);
   Serial.print("Magn XYZ: ");
-  Serial.print(MPU9250.magn[0]);
+  Serial.print(MPU9250.magnRaw[0]);
   Serial.print(" | ");
-  Serial.print(MPU9250.magn[1]);
+  Serial.print(MPU9250.magnRaw[1]);
   Serial.print(" | ");
-  Serial.println(MPU9250.magn[2]);
+  Serial.println(MPU9250.magnRaw[2]);
+  Serial.print("Compass Deg: ");
+  Serial.println(getCompassDegrees());
   printCnt = 0;
 }
