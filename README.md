@@ -19,3 +19,7 @@ SparkFun Inventor's Kit exercises
 * [Circuit 5B](Circuit5B)
 * [Circuit 5C](Circuit5C)
 * [Unit 3 Exercise](Unit3)
+* [10 DoF Accelerometer](10DOFAccelerometer)
+* [Mecanum Chassis](Mecanum)
+* [Sparkfun MicroSD](SF-MicroSD)
+* [Wall Following Bot](WallFllow)

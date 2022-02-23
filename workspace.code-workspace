@@ -75,6 +75,10 @@
 		{
 			"name": "SF-MicroSD",
 			"path": "SF-MicroSD"
+		},
+		{
+			"name": "WallFllow",
+			"path": "../../../../../../../OneDrive/Documents/Education_Darin/COMP444/DLP_COMP444/WallFllow"
 		}
 	],
 	"settings": {}
