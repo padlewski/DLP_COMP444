@@ -1,0 +1,1 @@
+This work is related to experimentation with a robot control for my [COMP444](https://www.athabascau.ca/syllabi/comp/comp444.html) course work. The following will include an IR line following sensor to a mecanum robot.
