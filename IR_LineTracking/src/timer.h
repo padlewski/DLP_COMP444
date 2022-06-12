@@ -15,7 +15,7 @@ struct TimedActionMs {
     TimedActionMs *next;
 };
 
-struct TimedActionMs buildActionMs(String name, unsigned int interval, void(*a)(), bool active) {
+struct TimedActionMs TMR_buildActionMs(String name, unsigned int interval, void(*a)(), bool active) {
     struct TimedActionMs action;
     action.name = name;
     action.active = active;

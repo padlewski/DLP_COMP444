@@ -23,7 +23,7 @@ void calibrate(IrLineSensor *sensor){
     }
 }
 
-void copyVals(int src[NUM_SENSORS], int dest[NUM_SENSORS][NUM_SENSORS], int row) {
+void copyVals(int src[IR_NUM_SENSORS], int dest[IR_NUM_SENSORS][IR_NUM_SENSORS], int row) {
     ITERATE_IR dest[row][IR_i] = src[IR_i];
 }
 
@@ -49,9 +49,9 @@ void shiftTo(uint8_t ir, IrLineSensor *state) {
 
 bool calibrateIr(IrLineSensor *sensor){
     // create a matrix to store some calibrations
-    int measurements[NUM_SENSORS][NUM_SENSORS];
+    int measurements[IR_NUM_SENSORS][IR_NUM_SENSORS];
     updateIrLineSensor(sensor);
-    for(int i = 0 ; i < NUM_SENSORS ; ++i) {
+    for(int i = 0 ; i < IR_NUM_SENSORS ; ++i) {
         shiftTo(i, sensor);
         updateIrLineSensor(sensor);
         copyVals(sensor->raw, measurements, i);

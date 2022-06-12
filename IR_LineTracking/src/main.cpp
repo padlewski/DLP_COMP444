@@ -13,8 +13,8 @@ struct BotState {
 
 
 
-uint8_t irInputs[NUM_SENSORS] = {A0,A1,A2,A3,A4};
-IrLineSensor lineSensor = initIrLineSensor(irInputs);
+uint8_t irInputs[IR_NUM_SENSORS] = {A0,A1,A2,A3,A4};
+IrLineSensor lineSensor = IR_init(irInputs);
 byte previousDir;
 byte currentDir;
 byte previousSpeed;
@@ -24,13 +24,12 @@ void doUpdateState();
 void doPrint();
 void doMove();
 void doUpdateIr() {
-  updateIrLineSensor(&lineSensor);
+  IR_update(&lineSensor);
 }
-void doMagCalibration();
 
-struct TimedActionMs update = buildActionMs("update", 23, &doUpdateIr, true);
-struct TimedActionMs print = buildActionMs("print", 3000, &doPrint, true);
-struct TimedActionMs move = buildActionMs("move", 2000, &doMove, true);
+struct TimedActionMs update = TMR_buildActionMs("update", 23, &doUpdateIr, true);
+struct TimedActionMs print = TMR_buildActionMs("print", 3000, &doPrint, true);
+struct TimedActionMs move = TMR_buildActionMs("move", 2000, &doMove, true);
 
 void setup() {
   Serial.begin(9600);
@@ -66,31 +65,31 @@ void doMove() {
 void doPrint() {
   Serial.println(lineSensor.status, BIN);
   Serial.print("Raw: ");
-  for (uint8_t i = 0 ; i < NUM_SENSORS ; ++i) {
+  for (uint8_t i = 0 ; i < IR_NUM_SENSORS ; ++i) {
     Serial.print(lineSensor.raw[i]);
     Serial.print(" | ");
   }
   Serial.println(" ");
   Serial.print("Min: ");
-  for (uint8_t i = 0 ; i < NUM_SENSORS ; ++i) {
+  for (uint8_t i = 0 ; i < IR_NUM_SENSORS ; ++i) {
     Serial.print(lineSensor.min[i]);
     Serial.print(" | ");
   }
   Serial.println(" ");
   Serial.print("Max: ");
-  for (uint8_t i = 0 ; i < NUM_SENSORS ; ++i) {
+  for (uint8_t i = 0 ; i < IR_NUM_SENSORS ; ++i) {
     Serial.print(lineSensor.max[i]);
     Serial.print(" | ");
   }
   Serial.println(" ");
   Serial.print("Thesh: ");
-  for (uint8_t i = 0 ; i < NUM_SENSORS ; ++i) {
+  for (uint8_t i = 0 ; i < IR_NUM_SENSORS ; ++i) {
     Serial.print(lineSensor.threshold[i]);
     Serial.print(" | ");
   }
   Serial.println(" ");
   Serial.print("Norm: ");
-  for (uint8_t i = 0 ; i < NUM_SENSORS ; ++i) {
+  for (uint8_t i = 0 ; i < IR_NUM_SENSORS ; ++i) {
     Serial.print(lineSensor.normalized[i]);
     Serial.print(" | ");
   }

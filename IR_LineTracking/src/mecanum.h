@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#define M_LOOP for (Mi = 0 ; Mi < M_N ; ++Mi)
+
 enum dir {
     Forward = 0,
     Back = 1,
@@ -54,24 +56,28 @@ const byte* M_getDirection(const byte flag) {
 }
 
 void M_setupMotors(void) {
-    for (Mi = 0 ; Mi < M_N ; ++Mi){
+    M_LOOP {
         pinMode(SPEED_PINS[Mi], OUTPUT);
         pinMode(DIR_PINS[Mi], OUTPUT);
     }
 }
 
 void M_move(const byte direction[M_N], const byte speed){
-    for (Mi = 0 ; Mi < M_N ; ++Mi) {
+    M_LOOP {
         digitalWrite(DIR_PINS[Mi], direction[Mi]);
         analogWrite(SPEED_PINS[Mi], speed);
     }
 }
 
 void M_move(const byte direction[M_N], const byte speed[M_N]){
-    for (Mi = 0 ; Mi < M_N ; ++Mi) {
+    M_LOOP {
         digitalWrite(DIR_PINS[Mi], direction[Mi]);
         analogWrite(SPEED_PINS[Mi], speed[Mi]);
     }
+}
+
+void M_stop() {
+    M_LOOP analogWrite(SPEED_PINS[Mi], 0);
 }
 
 #endif // MERCANUM_H

@@ -2,70 +2,150 @@
 #define STARTUP_H
 
 #include <Arduino.h>
-#include "line_follow.h"
 #include "action_move.h"
+#include "ir_line.h"
 
-static const byte STARTUP_STATE_ID = B00000000;
+static const byte STARTUP_STATE_COMPLETE = B00000111;
 static const String STARTUP_STATE_NAME = "STARTUP";
+static const unsigned int STARTUP_SPEEDS[M_N] = {100, 100, 100, 100};
 
 // actions
-void SUA_UpdateIr(void);
-void SUA_UpdateMag(void);
-void SUA_CheckState(void);
+void SUA_updateIr(void);
+void SUA_updateMag(void);
+void SUA_checkState(void);
+bool SUA_checkLineCallback(void);
+void SUA_onLineCallback(void);
 
 struct StartupState {
+    IrLineSensor *lineSensor;
+    uint8_t lastKnownLinePosition;
     // setup some memory for movement
-    byte mSize = 2;
-    byte directions[2] = {0, 0};
-    byte speeds[2][M_N] = {{0,0,0,0},{0,0,0,0}};
-    unsigned int times[2] = {0,0};
+    byte mSize = 3;
+    byte directions[3] = {0,0,0};
+    byte speeds[3][M_N] = {{0,0,0,0},{0,0,0,0},{0,0,0,0}};
+    unsigned int times[3] = {0,0,0};
     byte mode;
     TimedActionMs *current;
 } SU_State;
 
-struct TimedActionMs SU_ActionUpdate = buildActionMs("update sensors", 25, &SUA_UpdateIr, true);
-struct TimedActionMs SU_ActionCheckState = buildActionMs("check state", 50, &SUA_CheckState, true);
+struct TimedActionMs SU_ActionUpdate = TMR_buildActionMs("update sensors", 25, &SUA_updateIr, true);
+struct TimedActionMs SU_ActionCheckState = TMR_buildActionMs("check state", 50, &SUA_checkState, true);
+
+// initialize setup and return our action head
+TimedActionMs* SU_init(IrLineSensor *ls) {
+    SU_State.mode = 0; // Mode 0 start
+    SU_State.lineSensor = ls;
+    // setup the timed move action
+    actionMoveSequenceState.size = SU_State.mSize;
+    actionMoveSequenceState.directions =  SU_State.directions;
+    actionMoveSequenceState.speeds = SU_State.speeds;
+    actionMoveSequenceState.times = SU_State.times;
+    // setup the until action (for reorienting the bot)
+    actionMoveUntilState.check = &SUA_checkLineCallback;
+    actionMoveUntilState.run = &SUA_onLineCallback;
+    SU_ActionUpdate.next = &actionMoveSequenceState.action;
+    actionMoveSequenceState.action.next = &actionMoveUntilState.action;
+    actionMoveUntilState.action.next = &SU_ActionCheckState;
+    return &SU_ActionUpdate;
+}
 
 // setup and start ir calibration
-void SU_SetIrCal(void) {
-    // create a lazy alias
-    static struct ActionMoveSequenceState * const _ = &actionMoveSequenceState;
-    _->size = SU_State.mSize;
-    _->directions =  SU_State.directions;
-    _->speeds = SU_State.speeds;
-    _->times = SU_State.times;
+void SU_setIrCal(void) {
+    SU_State.directions[0] = Left;
+    SU_State.directions[1] = Right;
+    SU_State.directions[2] = Forward;
+    memcpy_P(SU_State.speeds[0], STARTUP_SPEEDS, sizeof(STARTUP_SPEEDS));
+    memcpy_P(SU_State.speeds[1], STARTUP_SPEEDS, sizeof(STARTUP_SPEEDS));
+    // leave the last speed as a stop
+    SU_State.times[0] = SU_State.times[1] = 2000;
+    SU_State.times[2] = 10000;
+    SU_State.mode = 1; // Mode 1 calibrate line sensor
+    actionMoveSequenceState.action.active = true;
+}
+
+// check the state of the ir calibration
+void SU_checkIrCal(void) {
+    if(actionMoveSequenceState.count < actionMoveSequenceState.size) return;
+    ++SU_State.mode; // set the next state (mode 2 re-orient on the line)
+    // re-orientate back onto the line
+    actionMoveSequenceState.action.active = false; // disable movement
+    M_stop();
+    if(IR_leftOrRight(&SU_State.lineSensor->status) == IR_IS_CENTERED) { 
+        ++SU_State.mode; // Mode 3 On line
+        return; // we are centered
+    }
+    memcpy_P(actionMoveUntilState.speed, STARTUP_SPEEDS, sizeof(STARTUP_SPEEDS));
+    actionMoveUntilState.direction = IR_leftOrRight(&SU_State.lastKnownLinePosition) < IR_IS_CENTERED ? Right : Left;
+    actionMoveUntilState.action.active = true;
 }
 
 // setup and start Magnatrometer calibration
-void SU_SetMagCal(void) {
-    
+void SU_setMagCal(void) {
+    SU_State.directions[0] = Clockwise;
+    SU_State.directions[1] = Counter;
+    SU_State.directions[3] = Forward;
+    // Leave speeds as is
+    SU_State.times[0] = SU_State.times[1] = 10000;
+    ++SU_State.mode; // mode 4
+    actionMoveSequenceState.action.active = true;
+}
+
+void SU_checkMagCal(void) {
+    if(actionMoveSequenceState.count < actionMoveSequenceState.size) return;
+    ++SU_State.mode; // Mode 5
+    actionMoveSequenceState.action.active = false; // disable movement
+    M_stop();
+    if(IR_leftOrRight(&SU_State.lineSensor->status) == IR_IS_CENTERED) { 
+        ++SU_State.mode; // Mode 6 On line
+        return; // we are centered
+    }
+    memcpy_P(actionMoveUntilState.speed, STARTUP_SPEEDS, sizeof(STARTUP_SPEEDS));
+    actionMoveUntilState.direction = IR_leftOrRight(&SU_State.lastKnownLinePosition) < IR_IS_CENTERED ? Clockwise : Counter;
+    actionMoveUntilState.action.active = true;
 }
 
 // we have finished the setup 
-void SU_SetComplete(void) {
-
+void SU_setComplete(void) {
+    ++SU_State.mode; // Mode 7 all done
 }
 
-void SUA_CheckState(void) {
+void SUA_checkState(void) {
     switch(SU_State.mode) {
         case 0:
-            SU_SetIrCal();
+            SU_setIrCal();
             break;
         case 1:
-            SU_SetMagCal();
+            SU_checkIrCal();
             break;
-        default:
-            SU_SetComplete();
+        case 3:
+            SU_setMagCal();
+            break;
+        case 4:
+            SU_checkMagCal();
+            break;
+        case 6:
+            SU_setComplete();
             break;
     }
 }
 
-void SUA_UpdateIr(void) {
-    
+bool SUA_checkLineCallback(void) {
+    return IR_leftOrRight(&SU_State.lineSensor->status) == IR_IS_CENTERED;
+}
+
+void SUA_onLineCallback(void) {
+    M_stop();
+    ++SU_State.mode;
+}
+
+void SUA_updateIr(void) {
+    uint8_t status = IR_update(SU_State.lineSensor);
+    if(IR_STATUS_MASK & status) 
+        SU_State.lastKnownLinePosition = status;
 }
 
 // from https://appelsiini.net/2018/calibrate-magnetometer/
-void SUA_UpdateMag(void) {
+void SUA_updateMag(void) {
   static int min[3] = {32767, 32767, 32767};
   static int max[3] = {-32768, -32768, -32768};
   static float avg[3] = {0,0,0};
