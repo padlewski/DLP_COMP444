@@ -62,14 +62,14 @@ void M_setupMotors(void) {
     }
 }
 
-void M_move(const byte direction[M_N], const byte speed){
+void M_move(const byte direction[M_N], const int speed){
     M_LOOP {
         digitalWrite(DIR_PINS[Mi], direction[Mi]);
         analogWrite(SPEED_PINS[Mi], speed);
     }
 }
 
-void M_move(const byte direction[M_N], const byte speed[M_N]){
+void M_move(const byte direction[M_N], const int speed[M_N]){
     M_LOOP {
         digitalWrite(DIR_PINS[Mi], direction[Mi]);
         analogWrite(SPEED_PINS[Mi], speed[Mi]);

@@ -6,6 +6,10 @@
 		{
 			"name": "IR_LineTracking",
 			"path": "IR_LineTracking"
+		},
+		{
+			"name": "Mecanum",
+			"path": "Mecanum"
 		}
 	],
 	"settings": {

@@ -6,60 +6,67 @@
 #include "WaveshareIMU.h"
 #include "startup.h"
 
+//static const int I2C_RATE = 115200;
+
 struct BotState {
   byte current;
   byte previous;
 } botState;
 
-
-
 uint8_t irInputs[IR_NUM_SENSORS] = {A0,A1,A2,A3,A4};
 IrLineSensor lineSensor = IR_init(irInputs);
-byte previousDir;
-byte currentDir;
-byte previousSpeed;
-byte currentSpeed;
+// byte previousDir;
+// byte currentDir;
+// byte previousSpeed;
+// byte currentSpeed;
 
-void doUpdateState();
+void doUpdate();
 void doPrint();
-void doMove();
-void doUpdateIr() {
-  IR_update(&lineSensor);
-}
+// void doMove();
+// void doUpdateIr() {
+//   IR_update(&lineSensor);
+// }
 
-struct TimedActionMs update = TMR_buildActionMs("update", 23, &doUpdateIr, true);
+// struct TimedActionMs update = TMR_buildActionMs("update", 23, &doUpdateIr, true);
 struct TimedActionMs print = TMR_buildActionMs("print", 3000, &doPrint, true);
-struct TimedActionMs move = TMR_buildActionMs("move", 2000, &doMove, true);
+struct TimedActionMs update = TMR_buildActionMs("update", 20, &doUpdate, true);
+
+// struct TimedActionMs move = TMR_buildActionMs("move", 2000, &doMove, true);
 
 void setup() {
   Serial.begin(9600);
   Serial.println("Starting");
+  Wire.begin(); // setup the I2C connection
+  IMU_Init();
+  delay(1000);
   TMR_tick();
   IR_coldStart(&lineSensor);
   M_setupMotors();
   update.next = &print;
-  print.next = &move;
+  print.next = SU_init(&lineSensor);
   timerState.actions = &update;
-  previousDir = currentDir = 0;
-  previousSpeed = currentSpeed = 0;
-  M_move(M_getDirection(currentDir), currentSpeed); // stop
-  currentSpeed = 150;
+  Serial.println("Setup Complete");
 }
+
 
 void loop() {
   TMR_tick();
+//   M_move(M_getDirection(Left), STARTUP_SPEEDS);
+//   delay(1000);
+//   M_move(M_getDirection(Right), STARTUP_SPEEDS);
+//   delay(1000);
 }
 
-void doUpdateState() {
-
+void doUpdate() {
+  if(SU_State.mode == STARTUP_STATE_COMPLETE) print.next = NULL;
 }
 
-void doMove() {
-  previousDir = currentDir;
-  if(currentDir == 2) currentDir = 3;
-  else currentDir = 2;
-  M_move(M_getDirection(currentDir), currentSpeed);
-}
+// void doMove() {
+//   previousDir = currentDir;
+//   if(currentDir == 2) currentDir = 3;
+//   else currentDir = 2;
+//   M_move(M_getDirection(currentDir), currentSpeed);
+// }
 
 
 void doPrint() {
@@ -96,4 +103,5 @@ void doPrint() {
   Serial.println(" ");
   if(lineSensor.hiMode) Serial.println("Hi Mode");
   else Serial.println("LowMode");
+  Serial.println("Deg.");Serial.println(getCompassDegrees());
 }

@@ -37,8 +37,8 @@ IrLineSensor IR_init(uint8_t *irIn, bool mode = true) {
         pinMode(irIn[IR_i], INPUT);
         sensor.max[IR_i] = 0;
         sensor.min[IR_i] = 1024;
-        sensor.threshold[IR_i] = 0; // set it to approx 1/3 of range
-        sensor.backlash = 1010;
+        sensor.threshold[IR_i] = 0;
+        sensor.backlash = 1015;
     }
     return sensor;
 }
@@ -97,16 +97,11 @@ void IR_read(IrLineSensor *sensor) {
     ITERATE_IR sensor->raw[IR_i] = analogRead(sensor->irIn[IR_i]);
 }
 
-bool IR_isCentered(uint8_t *state) {
-    return (IR_STATUS_MASK & *state) == B00000100
-        || (IR_STATUS_MASK & *state) == B00001110;
-}
-
 static const uint8_t IR_IS_CENTERED = B00010100;
 
 // Use weighted average to get position
-// if result = 20 we are centered, < 20 left of center 
-// > 20 right of center
+// if result = 20 we are centered, < 20 right of center 
+// > 20 left of center
 // adapted from https://www.waveshare.com/wiki/Tracker_Sensor
 uint8_t IR_leftOrRight(uint8_t *state) {
     uint8_t m = B00000001;
@@ -120,6 +115,10 @@ uint8_t IR_leftOrRight(uint8_t *state) {
         m = m << 1;
     }
     return r / c;
+}
+
+bool IR_isCentered(uint8_t *state) {
+    return IR_leftOrRight(state) == IR_IS_CENTERED;
 }
 
 

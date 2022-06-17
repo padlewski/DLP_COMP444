@@ -7,7 +7,7 @@
 
 static const byte STARTUP_STATE_COMPLETE = B00000111;
 static const String STARTUP_STATE_NAME = "STARTUP";
-static const unsigned int STARTUP_SPEEDS[M_N] = {100, 100, 100, 100};
+static const int STARTUP_SPEEDS[M_N] = {50, 50, 50, 50};
 
 // actions
 void SUA_updateIr(void);
@@ -22,7 +22,7 @@ struct StartupState {
     // setup some memory for movement
     byte mSize = 3;
     byte directions[3] = {0,0,0};
-    byte speeds[3][M_N] = {{0,0,0,0},{0,0,0,0},{0,0,0,0}};
+    int speeds[3][M_N] = {{0,0,0,0},{0,0,0,0},{0,0,0,0}};
     unsigned int times[3] = {0,0,0};
     byte mode;
     TimedActionMs *current;
@@ -54,12 +54,14 @@ void SU_setIrCal(void) {
     SU_State.directions[0] = Left;
     SU_State.directions[1] = Right;
     SU_State.directions[2] = Forward;
-    memcpy_P(SU_State.speeds[0], STARTUP_SPEEDS, sizeof(STARTUP_SPEEDS));
-    memcpy_P(SU_State.speeds[1], STARTUP_SPEEDS, sizeof(STARTUP_SPEEDS));
+    memcpy(SU_State.speeds[0], STARTUP_SPEEDS, sizeof(STARTUP_SPEEDS));
+    memcpy(SU_State.speeds[1], STARTUP_SPEEDS, sizeof(STARTUP_SPEEDS));
     // leave the last speed as a stop
-    SU_State.times[0] = SU_State.times[1] = 2000;
+    SU_State.times[0] = 1500;
+    SU_State.times[1] = 2500;
     SU_State.times[2] = 10000;
     SU_State.mode = 1; // Mode 1 calibrate line sensor
+    actionMoveSequenceState.action.interval = actionMoveSequenceState.times[0];
     actionMoveSequenceState.action.active = true;
 }
 
@@ -74,39 +76,48 @@ void SU_checkIrCal(void) {
         ++SU_State.mode; // Mode 3 On line
         return; // we are centered
     }
-    memcpy_P(actionMoveUntilState.speed, STARTUP_SPEEDS, sizeof(STARTUP_SPEEDS));
-    actionMoveUntilState.direction = IR_leftOrRight(&SU_State.lastKnownLinePosition) < IR_IS_CENTERED ? Right : Left;
+    memcpy(actionMoveUntilState.speed, STARTUP_SPEEDS, sizeof(STARTUP_SPEEDS));
+    actionMoveUntilState.direction = IR_leftOrRight(&SU_State.lastKnownLinePosition) < IR_IS_CENTERED ? Left : Right;
     actionMoveUntilState.action.active = true;
 }
 
 // setup and start Magnatrometer calibration
 void SU_setMagCal(void) {
+    Serial.println("Setting Mag Calculation");
     SU_State.directions[0] = Clockwise;
     SU_State.directions[1] = Counter;
-    SU_State.directions[3] = Forward;
+    SU_State.directions[2] = Forward;
     // Leave speeds as is
-    SU_State.times[0] = SU_State.times[1] = 10000;
+    SU_State.times[0] = 12000;
+    SU_State.times[1] = 12000;
+    actionMoveSequenceState.action.previous = 0;
+    actionMoveSequenceState.action.delta = 0;
+    actionMoveSequenceState.count = 0;
+    actionMoveSequenceState.index = 0;
+    actionMoveSequenceState.action.interval = actionMoveSequenceState.times[0];
     ++SU_State.mode; // mode 4
+    Serial.println(SU_State.mode);
     actionMoveSequenceState.action.active = true;
 }
 
 void SU_checkMagCal(void) {
     if(actionMoveSequenceState.count < actionMoveSequenceState.size) return;
+    Serial.println("Reorienting after mag cal");
     ++SU_State.mode; // Mode 5
     actionMoveSequenceState.action.active = false; // disable movement
     M_stop();
-    if(IR_leftOrRight(&SU_State.lineSensor->status) == IR_IS_CENTERED) { 
+    if(IR_isCentered(&SU_State.lineSensor->status)) { 
         ++SU_State.mode; // Mode 6 On line
         return; // we are centered
     }
-    memcpy_P(actionMoveUntilState.speed, STARTUP_SPEEDS, sizeof(STARTUP_SPEEDS));
-    actionMoveUntilState.direction = IR_leftOrRight(&SU_State.lastKnownLinePosition) < IR_IS_CENTERED ? Clockwise : Counter;
+    actionMoveUntilState.direction = IR_leftOrRight(&SU_State.lastKnownLinePosition) < IR_IS_CENTERED ? Counter : Clockwise;
     actionMoveUntilState.action.active = true;
 }
 
 // we have finished the setup 
 void SU_setComplete(void) {
     ++SU_State.mode; // Mode 7 all done
+    SU_ActionUpdate.active = false;
 }
 
 void SUA_checkState(void) {
@@ -130,18 +141,24 @@ void SUA_checkState(void) {
 }
 
 bool SUA_checkLineCallback(void) {
-    return IR_leftOrRight(&SU_State.lineSensor->status) == IR_IS_CENTERED;
+    // Serial.print("Check "); Serial.print(SU_State.lineSensor->status, BIN);
+    // Serial.print(" isC "); Serial.println(IR_leftOrRight(&SU_State.lineSensor->status));
+    return IR_isCentered(&SU_State.lineSensor->status);
 }
 
 void SUA_onLineCallback(void) {
+    actionMoveUntilState.action.active = false;
     M_stop();
     ++SU_State.mode;
+    Serial.print("Complete online status: ");
+    Serial.println(SU_State.mode);
 }
 
 void SUA_updateIr(void) {
     uint8_t status = IR_update(SU_State.lineSensor);
     if(IR_STATUS_MASK & status) 
         SU_State.lastKnownLinePosition = status;
+    SUA_updateMag();
 }
 
 // from https://appelsiini.net/2018/calibrate-magnetometer/
