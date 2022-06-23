@@ -38,7 +38,7 @@ IrLineSensor IR_init(uint8_t *irIn, bool mode = true) {
         sensor.max[IR_i] = 0;
         sensor.min[IR_i] = 1024;
         sensor.threshold[IR_i] = 0;
-        sensor.backlash = 1015;
+        sensor.backlash = 800;
     }
     return sensor;
 }
@@ -61,7 +61,7 @@ uint8_t IR_update(IrLineSensor *sensor) {
         if(sensor->raw[IR_i] > sensor->max[IR_i]) sensor->max[IR_i] = sensor->raw[IR_i];
         if(sensor->raw[IR_i] < sensor->min[IR_i]) sensor->min[IR_i] = sensor->raw[IR_i];
         IR_normalize(sensor, IR_i);
-        sensor->status = (sensor->status << 1) | ((sensor->raw[IR_i] < sensor->threshold[IR_i]) & sensor->hiMode );
+        sensor->status = (sensor->status << 1) | (sensor->raw[IR_i] < sensor->threshold[IR_i]);// & sensor->hiMode );
     }
     if(!sensor->hiMode) sensor->status = ~sensor->status;
     return sensor->status;
@@ -79,16 +79,12 @@ void IR_coldStart(IrLineSensor *sensor) {
     for (int i = 0 ; i < 10 ; ++i) IR_sample(sensor);
     int minV = 1024;
     int maxV = 0;
-    int minIr;
-    int maxIr;
     ITERATE_IR {
         if(maxV < sensor->raw[IR_i]){
             maxV = sensor->raw[IR_i];
-            maxIr = IR_i;
         }
         if(minV > sensor->raw[IR_i]){
             minV = sensor->raw[IR_i];
-            minIr = IR_i;
         }
     }
 }
