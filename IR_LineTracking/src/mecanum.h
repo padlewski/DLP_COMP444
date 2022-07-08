@@ -5,75 +5,45 @@
 
 #define M_LOOP for (Mi = 0 ; Mi < M_N ; ++Mi)
 
-// enum dir {
-byte Forward = 0;
-byte Back = 1;
-byte Right = 2;
-byte Left = 3;
-byte Clockwise = 4;
-byte Counter = 5;
-byte FrontTurnRight = 6;
-byte FrontTurnLeft = 7;
-byte BackTurnRight = 8;
-byte BackTurnLeft = 9;
-// };
+// the first four map to turns and wheels (speed)
+byte FrontLeft = 0;
+byte FrontRight = 1;
+byte BackLeft = 2;
+byte BackRight = 3;
+byte Forward = 4;
+byte Back = 5;
+byte Right = 6;
+byte Left = 7;
+byte Clockwise = 8;
+byte Counter = 9;
 
-const int SPEED_PINS[4] = {3, 11, 5, 6};
-const int DIR_PINS[4]   = {4, 12, 8, 7};
+static const byte SPEED_PINS[4] = {3, 11, 5, 6};
+static const byte DIR_PINS[4]   = {4, 12, 8, 7};
 
-const byte MOTOR_SPEED[4] = {0, 0, 0, 0};
 
-const byte FORWARD[4]   = {LOW, HIGH, LOW, HIGH};
-const byte BACK[4]      = {HIGH, LOW, HIGH, LOW};
-const byte RIGHT[4]     = {LOW, LOW, HIGH, HIGH};
-const byte F_RIGHT[4]   = {LOW, LOW, LOW, HIGH};
-const byte B_RIGHT[4]   = {LOW, HIGH, LOW, LOW};   // Turn right using back 
-const byte LEFT[4]      = {HIGH, HIGH, LOW, LOW};
-const byte F_LEFT[4]    = {HIGH, HIGH, LOW, HIGH};
-const byte B_LEFT[4]    = {LOW, HIGH, HIGH, HIGH}; // Turn left using back
-const byte CLOCKWISE[4] = {LOW, LOW, LOW, LOW};
-const byte COUNTER[4]   = {HIGH, HIGH, HIGH, HIGH};
+static int M_SPEED[4] = {0,0,0,0};
+static int M_SPEED_PREV[4] = {0,0,0,0};
+static byte M_DIR = Forward;
+static byte M_DIR_PREV = Forward;
+static const int SPEED_STOP[4] = {0, 0, 0, 0};
+static const size_t SIZE_SPEEDS = sizeof(int[4]);
+
+    //  [ FL, FR, BL, BR ]
+const bool DIRECTIONS[10][4] = {
+    {HIGH, HIGH, LOW, HIGH},    // F_LEFT
+    {LOW, LOW, LOW, HIGH},      // F_RIGHT
+    {LOW, HIGH, HIGH, HIGH},    // B_LEFT
+    {LOW, HIGH, LOW, LOW},      // B_RIGHT
+    {LOW, HIGH, LOW, HIGH},     // FORWARD
+    {HIGH, LOW, HIGH, LOW},     // BACK
+    {LOW, LOW, HIGH, HIGH},     // RIGHT
+    {HIGH, HIGH, LOW, LOW},     // LEFT
+    {LOW, LOW, LOW, LOW},       // CLOCKWISE
+    {HIGH, HIGH, HIGH, HIGH}    // COUNTER
+};
 
 static const uint8_t M_N = 4;
 byte Mi;
-
-const byte* M_getDirection(const byte flag) {
-    switch (flag)
-    {
-    case 0:
-        return FORWARD;
-        break;
-    case 1:
-        return BACK;
-        break;
-    case 2:
-        return RIGHT;
-        break;
-    case 3:
-        return LEFT;
-        break;
-    case 4:
-        return CLOCKWISE;
-        break;
-    case 5:
-        return COUNTER;
-        break;
-    case 6:
-        return F_RIGHT;
-        break;
-    case 7:
-        return F_LEFT;
-        break;
-    case 8:
-        return B_RIGHT;
-        break;
-    case 9:
-        return B_LEFT;
-        break;
-    default:
-        return FORWARD;
-    }
-}
 
 void M_setupMotors(void) {
     M_LOOP {
@@ -82,22 +52,21 @@ void M_setupMotors(void) {
     }
 }
 
-void M_move(const byte direction[M_N], const int speed){
+void M_move(const byte direction, const int speed[M_N]){
+    if(direction == M_DIR && memcmp(speed, M_SPEED, SIZE_SPEEDS) == 0) return; // no change
+    M_DIR_PREV = M_DIR;
+    M_DIR = direction;
+    memcpy(M_SPEED_PREV, M_SPEED, SIZE_SPEEDS);
+    memcpy(M_SPEED, speed, SIZE_SPEEDS);
+    //const byte* dir = M_getDirection(M_DIR);
     M_LOOP {
-        digitalWrite(DIR_PINS[Mi], direction[Mi]);
-        analogWrite(SPEED_PINS[Mi], speed);
-    }
-}
-
-void M_move(const byte direction[M_N], const int speed[M_N]){
-    M_LOOP {
-        digitalWrite(DIR_PINS[Mi], direction[Mi]);
-        analogWrite(SPEED_PINS[Mi], speed[Mi]);
+        digitalWrite(DIR_PINS[Mi], DIRECTIONS[M_DIR][Mi]);
+        analogWrite(SPEED_PINS[Mi], M_SPEED[Mi]);
     }
 }
 
 void M_stop() {
-    M_LOOP analogWrite(SPEED_PINS[Mi], 0);
+    M_move(SPEED_PINS[Mi], SPEED_STOP);
 }
 
 #endif // MERCANUM_H

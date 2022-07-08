@@ -7,18 +7,16 @@
 
 static const byte STARTUP_STATE_COMPLETE = B00000111;
 static const String STARTUP_STATE_NAME = "STARTUP";
-static const int STARTUP_SPEEDS[M_N] = {50, 50, 50, 50};
+static const int STARTUP_SPEEDS[M_N] = {65, 65, 65, 65};
 
 // actions
 void SUA_updateIr(void);
 void SUA_updateMag(void);
 void SUA_checkState(void);
-bool SUA_checkLineCallback(void);
 void SUA_onLineCallback(void);
 
 struct StartupState {
-    IrLineSensor *lineSensor;
-    uint8_t lastKnownLinePosition;
+    byte lastKnownLinePosition;
     // setup some memory for movement
     byte mSize = 3;
     byte directions[3] = {0,0,0};
@@ -31,17 +29,17 @@ struct StartupState {
 struct TimedActionMs SU_ActionCheckState = TMR_buildActionMs("check state", 50, &SUA_checkState, true);
 
 // initialize setup and return our action head
-TimedActionMs* SU_init(IrLineSensor *ls) {
+TimedActionMs* SU_init(void) {
     SU_State.mode = 0; // Mode 0 start
-    SU_State.lineSensor = ls;
     // setup the timed move action
     actionMoveSequenceState.size = SU_State.mSize;
     actionMoveSequenceState.directions =  SU_State.directions;
     actionMoveSequenceState.speeds = SU_State.speeds;
     actionMoveSequenceState.times = SU_State.times;
     // setup the until action (for reorienting the bot)
-    actionMoveUntilState.check = &SUA_checkLineCallback;
+    actionMoveUntilState.check = &checkIsIrCentered;
     actionMoveUntilState.run = &SUA_onLineCallback;
+    actionMoveUntilState.until = &untilNoop;
     return &SU_ActionCheckState;
 }
 
@@ -50,8 +48,8 @@ void SU_setIrCal(void) {
     SU_State.directions[0] = Left;
     SU_State.directions[1] = Right;
     SU_State.directions[2] = Forward;
-    memcpy(SU_State.speeds[0], STARTUP_SPEEDS, sizeof(STARTUP_SPEEDS));
-    memcpy(SU_State.speeds[1], STARTUP_SPEEDS, sizeof(STARTUP_SPEEDS));
+    memcpy(SU_State.speeds[0], STARTUP_SPEEDS, SIZE_SPEEDS);
+    memcpy(SU_State.speeds[1], STARTUP_SPEEDS, SIZE_SPEEDS);
     // leave the last speed as a stop
     SU_State.times[0] = 1500;
     SU_State.times[1] = 2500;
@@ -68,18 +66,18 @@ void SU_checkIrCal(void) {
     // re-orientate back onto the line
     doMoveSequence.active = false; // disable movement
     M_stop();
-    if(IR_leftOrRight(&SU_State.lineSensor->status) == IR_IS_CENTERED) { 
+    if(IR_leftOrRight(&lineSensor.status) == IR_IS_CENTERED) { 
         ++SU_State.mode; // Mode 3 On line
         return; // we are centered
     }
-    memcpy(actionMoveUntilState.speed, STARTUP_SPEEDS, sizeof(STARTUP_SPEEDS));
+    memcpy(actionMoveUntilState.speed, STARTUP_SPEEDS, SIZE_SPEEDS);
     actionMoveUntilState.direction = IR_leftOrRight(&SU_State.lastKnownLinePosition) < IR_IS_CENTERED ? Left : Right;
+    actionMoveUntilState.until = &untilCenteredStrafe;
     doMoveUntil.active = true;
 }
 
 // setup and start Magnetometer calibration
 void SU_setMagCal(void) {
-    Serial.println("Setting Mag Calculation");
     SU_State.directions[0] = Clockwise;
     SU_State.directions[1] = Counter;
     SU_State.directions[2] = Forward;
@@ -90,21 +88,20 @@ void SU_setMagCal(void) {
     actionMoveSequenceState.index = 0;
     doMoveSequence.delta = actionMoveSequenceState.times[0];
     ++SU_State.mode; // mode 4
-    Serial.println(SU_State.mode);
     doMoveSequence.active = true;
 }
 
 void SU_checkMagCal(void) {
     if(actionMoveSequenceState.count < actionMoveSequenceState.size) return;
-    Serial.println("Reorienting after mag cal");
     ++SU_State.mode; // Mode 5
     doMoveSequence.active = false; // disable movement
     M_stop();
-    if(IR_isCentered(&SU_State.lineSensor->status)) { 
+    if(IR_isCentered(&lineSensor.status)) { 
         ++SU_State.mode; // Mode 6 On line
         return; // we are centered
     }
     actionMoveUntilState.direction = IR_leftOrRight(&SU_State.lastKnownLinePosition) < IR_IS_CENTERED ? Counter : Clockwise;
+    actionMoveUntilState.until = &untilCenteredRotate;
     doMoveUntil.active = true;
 }
 
@@ -136,16 +133,10 @@ void SUA_checkState(void) {
     }
 }
 
-bool SUA_checkLineCallback(void) {
-    return IR_isCentered(&SU_State.lineSensor->status);
-}
-
 void SUA_onLineCallback(void) {
     doMoveUntil.active = false;
     M_stop();
     ++SU_State.mode;
-    Serial.print("Complete online status: ");
-    Serial.println(SU_State.mode);
 }
 
 #endif // STARTUP_H

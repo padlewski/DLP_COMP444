@@ -7,14 +7,16 @@ The code for the 5 channel ir line tracking sensor
 https://www.waveshare.com/wiki/Tracker_Sensor
 */
 
-static const uint8_t IR_NUM_SENSORS = 5;
-static const uint8_t IR_STATUS_MASK = B00011111;
+static const byte IR_NUM_SENSORS = 5;
+static const byte IR_STATUS_MASK = B00011111;
+static const byte IR_RIGHT_MASK = B00011100;
+static const byte IR_LEFT_MASK =B111;
 static int IR_i;
 
 #define ITERATE_IR for(IR_i = 0 ; IR_i < IR_NUM_SENSORS ; ++IR_i)
 
 struct IrLineSensor {
-    uint8_t *irIn;
+    byte irIn[IR_NUM_SENSORS] = {A0,A1,A2,A3,A4};
     int raw[IR_NUM_SENSORS];
     int normalized[IR_NUM_SENSORS];
     int min[IR_NUM_SENSORS];
@@ -23,81 +25,73 @@ struct IrLineSensor {
     int threshold[IR_NUM_SENSORS];
     int backlash;
     bool hiMode; // true if light background (dark line)
-    uint8_t status;
-};
+    byte status;
+} lineSensor;
 
 void IR_coldStart(IrLineSensor*);
 void IR_read(IrLineSensor*);
 
-IrLineSensor IR_init(uint8_t *irIn, bool mode = true) {
-    IrLineSensor sensor;
-    sensor.irIn = irIn;
-    sensor.hiMode = mode;
+void IR_init(void) {
+    lineSensor.hiMode = true;
     ITERATE_IR {
-        pinMode(irIn[IR_i], INPUT);
-        sensor.max[IR_i] = 0;
-        sensor.min[IR_i] = 1024;
-        sensor.threshold[IR_i] = 0;
-        sensor.backlash = 800;
+        pinMode(lineSensor.irIn[IR_i], INPUT);
+        lineSensor.max[IR_i] = 0;
+        lineSensor.min[IR_i] = 1024;
+        lineSensor.threshold[IR_i] = 0;
+        lineSensor.backlash = 500;
     }
-    return sensor;
 }
 
-void IR_normalize(IrLineSensor *sensor, int ir) {
-    if(not (sensor->max[ir] && sensor->min[ir])) {
-        // we haven't calibrated, just use raw
-        sensor->normalized[ir] = sensor->raw[ir];
-        return;
-    }
-    sensor->normalized[ir] = map(sensor->raw[ir], 0, 1023, sensor->min[ir], sensor->max[ir]);
-    sensor->threshold[ir] = map(sensor->backlash, 0, 1023, sensor->min[ir], sensor->max[ir]);
+void IR_normalize(int ir) {
+    lineSensor.normalized[ir] = map(lineSensor.raw[ir], 0, 1023, lineSensor.min[ir], lineSensor.max[ir]);
+    lineSensor.threshold[ir] = map(lineSensor.backlash, 0, 1023, lineSensor.min[ir], lineSensor.max[ir]);
 }
 
-uint8_t IR_update(IrLineSensor *sensor) {
-    sensor->status = 0;
+byte IR_update(void) {
+    lineSensor.status = 0;
     for(IR_i = 4; IR_i > -1 ; --IR_i){
-        sensor->raw[IR_i] = analogRead(sensor->irIn[IR_i]);
+        lineSensor.raw[IR_i] = analogRead(lineSensor.irIn[IR_i]);
         // update high and low
-        if(sensor->raw[IR_i] > sensor->max[IR_i]) sensor->max[IR_i] = sensor->raw[IR_i];
-        if(sensor->raw[IR_i] < sensor->min[IR_i]) sensor->min[IR_i] = sensor->raw[IR_i];
-        IR_normalize(sensor, IR_i);
-        sensor->status = (sensor->status << 1) | (sensor->raw[IR_i] < sensor->threshold[IR_i]);// & sensor->hiMode );
+        if(lineSensor.raw[IR_i] > lineSensor.max[IR_i]) lineSensor.max[IR_i] = lineSensor.raw[IR_i];
+        if(lineSensor.raw[IR_i] < lineSensor.min[IR_i]) lineSensor.min[IR_i] = lineSensor.raw[IR_i];
+        IR_normalize(IR_i);
+        lineSensor.status = (lineSensor.status << 1) | (lineSensor.raw[IR_i] < lineSensor.threshold[IR_i]);// & sensor->hiMode );
     }
-    if(!sensor->hiMode) sensor->status = ~sensor->status;
-    return sensor->status;
+    if(!lineSensor.hiMode) lineSensor.status = ~lineSensor.status;
+    return lineSensor.status;
 }
 
-void IR_sample(IrLineSensor *sensor) {
+void IR_sample(void) {
     ITERATE_IR {
-        sensor->raw[IR_i] = analogRead(sensor->irIn[IR_i]);
-        if(sensor->raw[IR_i] > sensor->max[IR_i]) sensor->max[IR_i] = sensor->raw[IR_i];
-        if(sensor->raw[IR_i] < sensor->min[IR_i]) sensor->min[IR_i] = sensor->raw[IR_i];
+        lineSensor.raw[IR_i] = analogRead(lineSensor.irIn[IR_i]);
+        if(lineSensor.raw[IR_i] > lineSensor.max[IR_i]) lineSensor.max[IR_i] = lineSensor.raw[IR_i];
+        if(lineSensor.raw[IR_i] < lineSensor.min[IR_i]) lineSensor.min[IR_i] = lineSensor.raw[IR_i];
     }
 }
 
-void IR_coldStart(IrLineSensor *sensor) {
-    for (int i = 0 ; i < 10 ; ++i) IR_sample(sensor);
+void IR_coldStart() {
+    for (int i = 0 ; i < 10 ; ++i) IR_sample();
     int minV = 1024;
     int maxV = 0;
     ITERATE_IR {
-        if(maxV < sensor->raw[IR_i]){
-            maxV = sensor->raw[IR_i];
+        if(maxV < lineSensor.raw[IR_i]){
+            maxV = lineSensor.raw[IR_i];
         }
-        if(minV > sensor->raw[IR_i]){
-            minV = sensor->raw[IR_i];
+        if(minV > lineSensor.raw[IR_i]){
+            minV = lineSensor.raw[IR_i];
         }
     }
 }
 
-void IR_read(IrLineSensor *sensor) {
-    ITERATE_IR sensor->raw[IR_i] = analogRead(sensor->irIn[IR_i]);
+void IR_read(void) {
+    ITERATE_IR lineSensor.raw[IR_i] = analogRead(lineSensor.irIn[IR_i]);
 }
 
-static const uint8_t IR_IS_CENTERED = B00010100;
+static const uint8_t IR_IS_CENTERED = B00011110; //30
 
 // Use weighted average to get position
-// if result = 20 we are centered, < 20 right of center 
-// > 20 left of center
+// if result = 30 we are centered, < 30 Left of center 
+// > 30 Right of center
 // adapted from https://www.waveshare.com/wiki/Tracker_Sensor
 uint8_t IR_leftOrRight(uint8_t *state) {
     uint8_t m = B00000001;
@@ -105,17 +99,24 @@ uint8_t IR_leftOrRight(uint8_t *state) {
     uint8_t c = 0;
     ITERATE_IR {
         if(m & *state) { 
-            r += IR_i * 10;
+            r += (IR_i + 1) * 10;
             ++c;
         }
         m = m << 1;
     }
-    return r / c;
+    return c ? r / c : 0;
 }
 
-bool IR_isCentered(uint8_t *state) {
+bool IR_isCentered(byte *state) {
     return IR_leftOrRight(state) == IR_IS_CENTERED;
 }
 
+bool IR_isOffLine(byte *state) {
+    return (*state & IR_STATUS_MASK) == 0;
+}
+
+bool IR_isIntersection(byte *state) {
+    return ((*state & IR_LEFT_MASK) == IR_LEFT_MASK) || ((*state & IR_RIGHT_MASK) == IR_RIGHT_MASK);
+}
 
 #endif // IR_LINE_H
