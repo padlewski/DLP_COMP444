@@ -11,10 +11,22 @@ byte writeByte(const byte *device, const byte *address, const byte val) {
     return Wire.endTransmission();
 }
 
+// Wire can't handle more than 32 bytes
+byte writeBytes(const byte *device, const byte *bytes, const int size) {
+    Wire.beginTransmission(*device);
+    for(int i = 0 ; i < size ; ++i) Wire.write(byte[i]);
+    return Wire.endTransmission();
+}
+
 byte readRegister(const byte *device, const byte *address) {
     Wire.beginTransmission(*device);  // connect to the device
     Wire.write(*address); // map the register
     Wire.endTransmission();
+    Wire.requestFrom(int(*device), 1);
+    return Wire.read();
+}
+
+byte readByte(const byte *device) {
     Wire.requestFrom(int(*device), 1);
     return Wire.read();
 }

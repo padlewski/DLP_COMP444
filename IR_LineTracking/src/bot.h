@@ -7,6 +7,12 @@
 #include "mecanum.h"
 #include "WaveshareIMU.h"
 
+static const int LF_SPEED[4] = {60, 60, 60, 60};
+static const int BK_SPEED[4] = {0, 0, 60, 60};
+static const int FR_SPEED[4] = {60, 60, 0, 0};
+static const int RI_SPEED[4] = {0, 60, 0, 60};
+static const int LE_SPEED[4] = {60, 0, 60, 0};
+
 struct BotState {
     byte lastKnownIr;
     byte currentState;

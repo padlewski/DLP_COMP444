@@ -37,7 +37,7 @@ void ActionMoveSequenceDo(void) {
 
 struct ActionMoveUntilState{
     byte direction;
-    int speed[4] = {0,0,0,0};
+    int (*speeds)[4];
     unsigned int count;
     bool(*check)(); // The condition which end the action
     void(*run)();    // the callback to run when check returns true
@@ -47,7 +47,7 @@ struct ActionMoveUntilState{
 
 void ActionMoveUntilDo() {
     ++actionMoveUntilState.count;
-    M_move(actionMoveUntilState.direction, actionMoveUntilState.speed);
+    M_move(actionMoveUntilState.direction, *actionMoveUntilState.speed);
     if(actionMoveUntilState.check()) actionMoveUntilState.run();
     else actionMoveUntilState.until();
 }
@@ -80,6 +80,7 @@ void ActionUpdateIr(void) {
 
 void ActionUpdateMpu(void) {
     MPU9250_READ_MAG();
+    botStatus.offsetHeading = IMU_calcOffsetByte(botState.headingsNESW[botState.trgHeading], IMU_getCompassAsByte());
 }
 
 bool checkIsIrCentered(void) {
@@ -101,6 +102,11 @@ bool checkIsIrNotCentered(void) {
 bool checkIsIrFollowing(void) {
     byte n = IR_leftOrRight(&lineSensor.status);
     return n > 15 || n < 35;
+}
+
+bool checkIsOriented() {
+    static byte threshold = 6; 
+    return abs(*botState.offsetHeading) < threshold;
 }
 
 bool checkIsIntersection(void) {
@@ -127,6 +133,10 @@ void untilCenteredFrontTurn(void) {
 void untilCenteredBackTurn(void) {
     if(IR_isOffLine(&lineSensor.status)) return; // off the line
     actionMoveUntilState.direction = IR_leftOrRight(&lineSensor.status) < IR_IS_CENTERED ? BackLeft : BackRight;
+}
+
+void untilOrientedBackPivot(void) {
+    actionMoveUntilState.direction = botState.offsetHeading < 0 ? Clockwise : Counter;
 }
 
 #endif // ACTIONS_H

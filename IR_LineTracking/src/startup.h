@@ -6,7 +6,6 @@
 #include "ir_line.h"
 
 static const byte STARTUP_STATE_COMPLETE = B00000111;
-static const String STARTUP_STATE_NAME = "STARTUP";
 static const int STARTUP_SPEEDS[M_N] = {65, 65, 65, 65};
 
 // actions
@@ -37,6 +36,7 @@ TimedActionMs* SU_init(void) {
     actionMoveSequenceState.speeds = SU_State.speeds;
     actionMoveSequenceState.times = SU_State.times;
     // setup the until action (for reorienting the bot)
+    actionMoveUntilState.speeds = &STARTUP_SPEEDS;
     actionMoveUntilState.check = &checkIsIrCentered;
     actionMoveUntilState.run = &SUA_onLineCallback;
     actionMoveUntilState.until = &untilNoop;
@@ -70,7 +70,6 @@ void SU_checkIrCal(void) {
         ++SU_State.mode; // Mode 3 On line
         return; // we are centered
     }
-    memcpy(actionMoveUntilState.speed, STARTUP_SPEEDS, SIZE_SPEEDS);
     actionMoveUntilState.direction = IR_leftOrRight(&SU_State.lastKnownLinePosition) < IR_IS_CENTERED ? Left : Right;
     actionMoveUntilState.until = &untilCenteredStrafe;
     doMoveUntil.active = true;
@@ -107,6 +106,15 @@ void SU_checkMagCal(void) {
 
 // we have finished the setup 
 void SU_setComplete(void) {
+    // Update the bots general cardinal coordinates we should be oriented on the line 
+    byte d = IMU_getCompassAsByte();
+    byte h = IMU_getHeading();
+    for(int i = 0 ; i < 4 ; ++i} {
+        byte x = h + i;
+        x = x < 4 ? x : x - 4;
+        int y = (64 * i) + d; 
+        botState.headingsNESW[x] = (byte)(y < 256 ? y : d - 256);
+    }
     ++SU_State.mode; // Mode 7 all done
     SU_ActionCheckState.active = false;
 }
