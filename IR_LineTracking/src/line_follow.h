@@ -186,17 +186,17 @@ void LF_selectDirection(void) {
 
 void LF_updateCardinal(void) {
     static byte curr = IMU_getCompassAsByte();
-    static byte av = botState.compassHeadingsNESW[IMU_getHeading()];
+    static byte av = botState.headingsNESW[IMU_getHeading()];
     // use a weighted Average to maintain realative dir
     av = ((av * 4) + curr ) / 5;
-    botState.compassHeadingsNESW[IMU_getHeading()];
+    botState.headingsNESW[IMU_getHeading()];
 }
 
 
 
 void LF_fixSkew(void) {
     // rotate to sensor
-    if(not IR_isCentered(*lineSensor.status)){
+    if(not IR_isCentered(&lineSensor.status)){
         actionMoveUntilState.direction = IR_leftOrRight(&lineSensor.status) < IR_IS_CENTERED ? Counter : Clockwise;
         actionMoveUntilState.speeds = &LF_SPEED;
         actionMoveUntilState.check = &checkIsIrCentered;

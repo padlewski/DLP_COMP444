@@ -14,7 +14,7 @@ byte writeByte(const byte *device, const byte *address, const byte val) {
 // Wire can't handle more than 32 bytes
 byte writeBytes(const byte *device, const byte *bytes, const int size) {
     Wire.beginTransmission(*device);
-    for(int i = 0 ; i < size ; ++i) Wire.write(byte[i]);
+    for(int i = 0 ; i < size ; ++i) Wire.write(bytes[i]);
     return Wire.endTransmission();
 }
 

@@ -2,7 +2,6 @@
 #define S_SD_H
 
 #include <Arduino.h>
-#include <SPI.h>
 #include <SD.h>
 
 static const byte MAP_BUFF_SZ = 32; // Wire has a 32 bit buffer

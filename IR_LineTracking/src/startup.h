@@ -6,7 +6,7 @@
 #include "ir_line.h"
 
 static const byte STARTUP_STATE_COMPLETE = B00000111;
-static const int STARTUP_SPEEDS[M_N] = {65, 65, 65, 65};
+static int STARTUP_SPEEDS[M_N] = {65, 65, 65, 65};
 
 // actions
 void SUA_updateIr(void);
@@ -109,12 +109,23 @@ void SU_setComplete(void) {
     // Update the bots general cardinal coordinates we should be oriented on the line 
     byte d = IMU_getCompassAsByte();
     byte h = IMU_getHeading();
-    for(int i = 0 ; i < 4 ; ++i} {
+    #ifdef _PRINT_
+    Serial.print("Heading: ");Serial.print(d);Serial.print(" | "); Serial.println(IMU_sGetHeading());
+    #endif
+    for(int i = 0 ; i < 4 ; ++i) {
         byte x = h + i;
         x = x < 4 ? x : x - 4;
-        int y = (64 * i) + d; 
-        botState.headingsNESW[x] = (byte)(y < 256 ? y : d - 256);
+        int y = (64 * i) + d;
+        botState.headingsNESW[x] = (byte)(y < 256 ? y : y - 256);
     }
+    #ifdef _PRINT_
+    Serial.println("Headings");
+    for(auto d: botState.headingsNESW) {
+        Serial.print(d);
+        Serial.print(" ");
+    }
+    Serial.println("");
+    #endif
     ++SU_State.mode; // Mode 7 all done
     SU_ActionCheckState.active = false;
 }

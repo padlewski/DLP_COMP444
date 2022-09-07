@@ -12,7 +12,7 @@ static const byte EAST = 1;
 static const byte SOUTH = 2;
 static const byte WEST = 3;
 
-float IMU_toGauss(const int*);
+float IMU_toGauss(const float*);
 
 void IMU_Init(void) {	
 	MPU9250_Init();
@@ -26,39 +26,57 @@ float IMU_getCompassDegrees(){
         if(x < 0.0f) return 180.0f;
         else return 0.0f;
     }
-    float result = atan2(y,x) * (180.0 / PI);
+    float result = atan2(y,x) * 180.0 / PI;
     if(result >= 360.0f) return result - 360.0f;
     if(result < 0.0f) return result + 360.0f;
     return result;
 }
 
 byte IMU_getCompassAsByte() {
-    return map(IMU_getCompassDegrees(), 0, 360, 0, 255);
+    return (byte)map((long)IMU_getCompassDegrees(), 0, 360, 0, 255);
 }
 
 byte IMU_getHeading(){
-    static byte h = IMU_getCompassAsByte(); 
-    if(h >= 32 || h < 96) return EAST;
-    if(h >= 96 || h < 160) return SOUTH;
-    if(h >= 160 || h < 223) return WEST;
+    byte h = IMU_getCompassAsByte(); 
+    if(h >= 32 && h < 96) return EAST;
+    if(h >= 96 && h < 160) return SOUTH;
+    if(h >= 160 && h < 223) return WEST;
     return NORTH;
 }
+
+#ifdef _PRINT_
+String IMU_sGetHeading() {
+    switch (IMU_getHeading())
+    {
+    case NORTH:
+        return "NORTH";
+    case EAST:
+        return "EAST";
+    case SOUTH:
+        return "SOUTH";
+    case WEST:
+        return "WEST";
+    default:
+        return "ERROR";
+    }
+}
+#endif
 
 // calculate the angle between the heading and target in degrees
 // if negative heading is left of target
 // based on https://stackoverflow.com/questions/5024375/getting-the-difference-between-two-headings
-int *IMU_calcOffsetDeg(int target, int heading) {
-    static int a = ((heading - target + 540) % 360) - 180;
-    return &a;
+int IMU_calcOffsetDeg(int target, int heading) {
+    int a = ((heading - target + 540) % 360) - 180;
+    return a;
 }
 
 // calculate the angle between the heading and target in byte 
 // if negative heading is left of target, we return an int because
 // we need the positive or negative value
 // Adapted from OffsetDeg (posed comment on stackoverflow stating solution was successful)
-int *IMU_calcOffsetByte(byte target, byte heading) {
-    static int a = (((int)heading - (int)target + 384) % 256) - 128;
-    return &a;
+int IMU_calcOffsetByte(byte target, byte heading) {
+    int a = (((int)heading - (int)target + 384) % 256) - 128;
+    return a;
 }
 
 // Range should be 250, 500, 1000, 2000
@@ -97,7 +115,7 @@ int *IMU_calcOffsetByte(byte target, byte heading) {
 
 // map from page 50 of RM-MPU-9255.pdf
 // Guass is magnetic flux density
-float IMU_toGauss(const int *val) {
+float IMU_toGauss(const float *val) {
     static float MIN = -4912.0f;
     static float MAX = 4912.0f;
     static float interval = 0.6f; // 14 bit mode

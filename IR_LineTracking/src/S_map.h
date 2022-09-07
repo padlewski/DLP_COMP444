@@ -23,14 +23,13 @@ static byte mapSize = 0;
 static byte registerCurrent = 0;
 
 void turnPage(void);
-void trunBack(void);
+void turnBack(void);
 void addNode(void);
 void updateNode(void);
 
-void processBuffer(const byte[PG_SIZE] buff, const byte size) {
-    registerCurrent = buff[0]
-    
-};
+void processBuffer(const byte buff[PG_SIZE], const byte size) {
+    registerCurrent = buff[0];
+}
 
 void addNode(byte node) {
     // TODO: Error handling for empty node
@@ -39,11 +38,12 @@ void addNode(byte node) {
     pgCurr[nodeCurrentIdx] = node;
 }
 
-void updateNode(byte node, byte idx) {
+byte updateNode(byte node, byte idx) {
     // TODO: Error handling for empty node and overflow
     if(idx >= nodeCount) return 0;
     nodeOldVal = pgCurr[idx];
-    pgCurr[idx] = nodeCurrenVal = node;
+    pgCurr[idx] = nodeCurrentVal = node;
+    return nodeOldVal;
 }
 
 void turnPage() {

@@ -93,6 +93,28 @@ void printDebug(void) {
   Serial.println("ir");
   Serial.println(lineSensor.status, BIN);
   Serial.println(IR_leftOrRight(&lineSensor.status));
+  Serial.print("Heading: ");
+  Serial.print(IMU_getCompassDegrees());
+  Serial.print(" | ");
+  Serial.print(IMU_getCompassAsByte());
+  Serial.print(" | ");
+  Serial.println(IMU_sGetHeading());
+  Serial.print("MAG Min: ");
+  Serial.print(MPU9250.magnMin[0]);Serial.print(" | ");
+  Serial.print(MPU9250.magnMin[1]);Serial.print(" | ");
+  Serial.println(MPU9250.magnMin[2]);
+  Serial.print("MAG Max: ");
+  Serial.print(MPU9250.magnMax[0]);Serial.print(" | ");
+  Serial.print(MPU9250.magnMax[1]);Serial.print(" | ");
+  Serial.println(MPU9250.magnMax[2]);
+  Serial.print("MAG Buff: ");
+  Serial.print(MPU9250.magn[0]);Serial.print(" | ");
+  Serial.print(MPU9250.magn[1]);Serial.print(" | ");
+  Serial.println(MPU9250.magn[2]);
+  Serial.print("MagnRaw: ");
+  Serial.print(MPU9250.magnRaw[0]);Serial.print(" | ");
+  Serial.print(MPU9250.magnRaw[1]);Serial.print(" | ");
+  Serial.println(MPU9250.magnRaw[2]);
   // if(IR_isOffLine(&lineSensor.status)) Serial.println("OffLine");
 }
 #endif

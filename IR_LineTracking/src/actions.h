@@ -10,7 +10,8 @@ void ActionUpdateMpu(void);
 void ActionCheckSwitch(void);
 
 struct TimedActionMs doUpdateIr = TMR_buildActionMs("Do IR", 30, &ActionUpdateIr, false);
-struct TimedActionMs doUpdateMpu = TMR_buildActionMs("Do Mpu", 100, &ActionUpdateMpu, false);
+// We set the compass to 8hz continuous mode
+struct TimedActionMs doUpdateMpu = TMR_buildActionMs("Do Mpu", 125, &ActionUpdateMpu, false);
 struct TimedActionMs doCheckSwitch = TMR_buildActionMs("Do Switch", 50, &ActionCheckSwitch, false);
 struct TimedActionMs doMoveSequence = TMR_buildActionMs("Do MOVE_S", 25, &ActionMoveSequenceDo, false);
 struct TimedActionMs doMoveUntil = TMR_buildActionMs("Do MOVE_U", 200, &ActionMoveUntilDo, false);
@@ -47,7 +48,7 @@ struct ActionMoveUntilState{
 
 void ActionMoveUntilDo() {
     ++actionMoveUntilState.count;
-    M_move(actionMoveUntilState.direction, *actionMoveUntilState.speed);
+    M_move(actionMoveUntilState.direction, *actionMoveUntilState.speeds);
     if(actionMoveUntilState.check()) actionMoveUntilState.run();
     else actionMoveUntilState.until();
 }
@@ -80,7 +81,7 @@ void ActionUpdateIr(void) {
 
 void ActionUpdateMpu(void) {
     MPU9250_READ_MAG();
-    botStatus.offsetHeading = IMU_calcOffsetByte(botState.headingsNESW[botState.trgHeading], IMU_getCompassAsByte());
+    botState.offsetHeading = IMU_calcOffsetByte(botState.headingsNESW[botState.trgHeading], IMU_getCompassAsByte());
 }
 
 bool checkIsIrCentered(void) {
@@ -106,7 +107,7 @@ bool checkIsIrFollowing(void) {
 
 bool checkIsOriented() {
     static byte threshold = 6; 
-    return abs(*botState.offsetHeading) < threshold;
+    return abs(botState.offsetHeading) < threshold;
 }
 
 bool checkIsIntersection(void) {

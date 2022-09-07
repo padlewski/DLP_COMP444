@@ -9,7 +9,8 @@ https://www.waveshare.com/wiki/Tracker_Sensor
 
 static const byte IR_NUM_SENSORS = 5;
 static const byte IR_STATUS_MASK = B00011111;
-static const byte IR_RIGHT_MASK = B00011100;
+static const byte IR_MID_MASK    = B00000100;
+static const byte IR_RIGHT_MASK  = B00011100;
 static const byte IR_LEFT_MASK =B111;
 static int IR_i;
 
@@ -87,7 +88,7 @@ void IR_read(void) {
     ITERATE_IR lineSensor.raw[IR_i] = analogRead(lineSensor.irIn[IR_i]);
 }
 
-static const uint8_t IR_IS_CENTERED = B00011110; //30
+static const byte IR_IS_CENTERED = B00011110; // 30
 
 // Use weighted average to get position
 // if result = 30 we are centered, < 30 Left of center 
@@ -109,6 +110,10 @@ uint8_t IR_leftOrRight(uint8_t *state) {
 
 bool IR_isCentered(byte *state) {
     return IR_leftOrRight(state) == IR_IS_CENTERED;
+}
+
+bool IR_isOnMiddle(byte *state) {
+    return *state == IR_MID_MASK;
 }
 
 bool IR_isOffLine(byte *state) {

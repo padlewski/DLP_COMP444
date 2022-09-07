@@ -12,15 +12,15 @@
 
 typedef struct {
 	byte Index;
-	int AvgBuffer[8];
+	int AvgBuffer[4] = {0};
 } MPU9250_AvgTypeDef;
 
 struct {
-    int magn[3] = {0,0,0};
+    float magn[3] = {0,0,0};
     int magnRaw[3] = {0,0,0};
     int magnMin[3] = {8190, 8190, 8190};
     int magnMax[3] = {-8190, -8190, -8190};
-    int magnAvg[3] = {0,0,0};
+    float magnAvg[3] = {0,0,0};
     float magnScale[3] = {1.0f, 1.0f, 1.0f};
     // int accel[3] = {0,0,0};
     // int accelRaw[3] = {0,0,0};
@@ -128,7 +128,7 @@ void MPU9250_Init(void) {
 
 void MPU9250_READ_MAG(void) { 
 	static int OutBuffer[3] = {0};
-    static byte status = 0;
+    byte status = 0;
     static const byte readBufferSize = 6;
     static byte readBuffer[readBufferSize] = {0,0,0,0,0,0};
 	static MPU9250_AvgTypeDef MPU9250_Filter[3];
@@ -141,15 +141,27 @@ void MPU9250_READ_MAG(void) {
     do {
         delay(timeout += 5);
         status = readRegister(&MAG_ADDRESS,&MAG_DAT_STAT_1);
-        if (timeout > 30) return; // timeout while reading magnetometer 
+        if (timeout > 100) {
+            Serial.println("Read timout");
+            goto JMP_MAG_READ_ERROR; // timeout while reading magnetometer 
+        }
     } while (not status);
-    if(status & B00000010) goto JMP_MAG_READ_ERROR; // overrun skip read
+    if(status & B10) {
+        #ifdef _PRINT_
+        Serial.println("MAG OVERRUN");
+        #endif
+        readRegister(&MAG_ADDRESS, &MAG_DAT_STAT_2);
+        goto JMP_MAG_READ_ERROR; // overrun skip read
+    }
     fillBuffer(&MAG_ADDRESS, &MAG_XOUT_L, readBuffer, &readBufferSize);
     if(readRegister(&MAG_ADDRESS, &MAG_DAT_STAT_2)) {
         JMP_MAG_READ_ERROR:
+        #ifdef _PRINT_
+        Serial.println("MAG Read Error");
+        #endif
         return; // Overflow or overrun
     }
-    // first byte is low byte on compass
+    //first byte is low byte on compass
     fillLow(&readBuffer[0], &MPU9250.magnRaw[0], 1);
     fillLow(&readBuffer[2], &MPU9250.magnRaw[1], 1);
     fillLow(&readBuffer[4], &MPU9250.magnRaw[2], 1);
@@ -159,15 +171,15 @@ void MPU9250_READ_MAG(void) {
             MPU9250.magnMin[i] = MPU9250.magnRaw[i];
         if(MPU9250.magnRaw[i] < 8190 && MPU9250.magnRaw[i] > MPU9250.magnMax[i]) 
             MPU9250.magnMax[i] = MPU9250.magnRaw[i];
-        MPU9250.magnAvg[i] = (MPU9250.magnMax[i] + MPU9250.magnMin[i]) / 2;
+        MPU9250.magnAvg[i] = (MPU9250.magnMax[i] + MPU9250.magnMin[i]) / 2.0f;
     }
-    avgDelta = ((float)(MPU9250.magnAvg[0] + MPU9250.magnAvg[1] + MPU9250.magnAvg[2]) / 3.0f);
+    avgDelta = (MPU9250.magnAvg[0] + MPU9250.magnAvg[1] + MPU9250.magnAvg[2]) / 3.0f;
     MPU9250.magnScale[0] = avgDelta / MPU9250.magnAvg[0];
     MPU9250.magnScale[1] = avgDelta / MPU9250.magnAvg[1];
     MPU9250.magnScale[2] = avgDelta / MPU9250.magnAvg[2];
-    for(byte i = 0; i < 3; i ++) {
+    for(byte i = 0; i < 3; i++) {
         OutBuffer[i] = MPU9250_CalAvgValue(&MPU9250_Filter[i].Index, MPU9250_Filter[i].AvgBuffer, MPU9250.magnRaw[i]);
-        MPU9250.magn[i] = (OutBuffer[i] - MPU9250.magnAvg[i] ) * MPU9250.magnScale[i];
+        MPU9250.magn[i] = (float)(OutBuffer[i] - MPU9250.magnAvg[i] ) * MPU9250.magnScale[i];
     }
 }
 
@@ -178,12 +190,12 @@ bool MPU9250_Check(void) {
 int MPU9250_CalAvgValue(byte *pIndex, int *pAvgBuffer, int InVal) {	
 	pAvgBuffer[*pIndex] = InVal;  // Add the current value to the buffer
     ++(*pIndex);
-  	*pIndex &= 0x07;                // increment the index
-  	long pOutVal = 0;
-	for(byte i = 0; i < 8; ++i) {
+  	*pIndex &= 0x03;                // increment the index
+  	float pOutVal = 0;
+	for(byte i = 0; i < 4; ++i) {
     	pOutVal += pAvgBuffer[i];
   	}
-  	return int(pOutVal / 8);
+  	return int(pOutVal / 4);
 }
 
 /**
