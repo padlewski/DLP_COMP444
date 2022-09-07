@@ -1,85 +1,23 @@
 {
 	"folders": [
 		{
-			"name": "Circuit1A",
-			"path": "Circuit1A"
+			"path": "../../../../../../../OneDrive/Documents/Education_Darin/COMP444/DLP_COMP444"
 		},
 		{
-			"name": "Circuit1B",
-			"path": "Circuit1B"
-		},
-		{
-			"name": "Circuit1C",
-			"path": "Circuit1C"
-		},
-		{
-			"name": "Circuit1D",
-			"path": "Circuit1D"
-		},
-		{
-			"name": "Circuit2A",
-			"path": "Circuit2A"
-		},
-		{
-			"name": "Circuit2B",
-			"path": "Circuit2B"
-		},
-		{
-			"name": "Circuit2C",
-			"path": "Circuit2C"
-		},
-		{
-			"name": "Circuit3A",
-			"path": "Circuit3A"
-		},
-		{
-			"name": "Circuit3B",
-			"path": "Circuit3B"
-		},
-		{
-			"name": "Circuit3C",
-			"path": "Circuit3C"
-		},
-		{
-			"name": "Circuit4A",
-			"path": "Circuit4A"
-		},
-		{
-			"name": "Circuit4B",
-			"path": "Circuit4B"
-		},
-		{
-			"name": "Circuit5A",
-			"path": "Circuit5A"
-		},
-		{
-			"name": "Circuit5B",
-			"path": "Circuit5B"
-		},
-		{
-			"name": "Circuit5C",
-			"path": "Circuit5C"
-		},
-		{
-			"name": "Unit3",
-			"path": "Unit3"
-		},
-		{
-			"name": "10DOFAccelerometer",
-			"path": "10DOFAccelerometer"
+			"name": "IR_LineTracking",
+			"path": "IR_LineTracking"
 		},
 		{
 			"name": "Mecanum",
 			"path": "Mecanum"
-		},
-		{
-			"name": "SF-MicroSD",
-			"path": "SF-MicroSD"
-		},
-		{
-			"name": "WallFllow",
-			"path": "../../../../../../../OneDrive/Documents/Education_Darin/COMP444/DLP_COMP444/WallFllow"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"chrono": "cpp",
+			"limits": "cpp",
+			"ratio": "cpp",
+			"algorithm": "cpp"
+		}
+	}
 }
