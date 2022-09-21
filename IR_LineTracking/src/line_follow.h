@@ -124,7 +124,6 @@ void LF_ExecIntersection(void) {
     actionMoveUntilState.check = &checkIsIrCenteredOrOffline; 
     actionMoveUntilState.until = &untilNoop;
     actionMoveUntilState.run = &LF_selectDirection;
-
 }
 
 void LF_find(void) {

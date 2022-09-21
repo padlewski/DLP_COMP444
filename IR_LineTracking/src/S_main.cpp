@@ -50,6 +50,7 @@ void handleReceive(int count) {
     static byte i;
     setLed();
     i = 0;
+    static byte i = 0;
     while(Wire.available()) {
         buffer[i++] = Wire.read();
         //TODO: Shouldn't get over 32 bytes, but could handle just in case
