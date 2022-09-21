@@ -3,6 +3,7 @@
 
 #include "bot.h"
 #include "startup.h"
+#include "map.h"
 
 // Forward declarations
 void LFA_updateState(void);
@@ -82,10 +83,11 @@ void LF_ExecTurn(byte dir) {
     #endif
     Serial.println(dir, BIN);
     actionMoveUntilState.direction = dir ? Clockwise : Counter;
-    actionMoveUntilState.speeds = &LF_SPEED;
+    actionMoveUntilState.speeds = &FR_SPEED;
     actionMoveUntilState.check = dir ? &checkRightTurnComplete : &checkLeftTurnComplete;
     actionMoveUntilState.until = &untilNoop;
     actionMoveUntilState.run = &LF_find;
+    MAP_add(&dir);
 }
 
 void LF_ExecFollow(void) {
@@ -104,7 +106,7 @@ void LF_ExecCorrection(void) {
     Serial.println("ExecCorrection");
     #endif
     actionMoveUntilState.direction = IR_leftOrRight(&SU_State.lastKnownLinePosition) < IR_IS_CENTERED ? FrontLeft : FrontRight;
-    actionMoveUntilState.speeds = &LF_SPEED;
+    actionMoveUntilState.speeds = &FR_SPEED;
     actionMoveUntilState.check = &checkIsNotCorrecting;
     actionMoveUntilState.until = &untilCenteredFrontTurn;
     actionMoveUntilState.run = &LF_find;
@@ -198,7 +200,7 @@ void LF_fixSkew(void) {
     // rotate to sensor
     if(not IR_isCentered(&lineSensor.status)){
         actionMoveUntilState.direction = IR_leftOrRight(&lineSensor.status) < IR_IS_CENTERED ? Counter : Clockwise;
-        actionMoveUntilState.speeds = &LF_SPEED;
+        actionMoveUntilState.speeds = &FR_SPEED;
         actionMoveUntilState.check = &checkIsIrCentered;
         actionMoveUntilState.until = &untilCenteredRotate;
         actionMoveUntilState.run = &LF_fixSkew;
@@ -206,11 +208,10 @@ void LF_fixSkew(void) {
     }
     // rotate the back
     actionMoveUntilState.direction = IR_leftOrRight(&lineSensor.status) < IR_IS_CENTERED ? Counter : Clockwise;
-        actionMoveUntilState.speeds = &BK_SPEED;
-        actionMoveUntilState.check = &checkIsIrCentered;
-        actionMoveUntilState.until = &untilCenteredRotate;
-        actionMoveUntilState.run = &LF_selectDirection;
-    
+    actionMoveUntilState.speeds = &BK_SPEED;
+    actionMoveUntilState.check = &checkIsIrCentered;
+    actionMoveUntilState.until = &untilCenteredRotate;
+    actionMoveUntilState.run = &LF_selectDirection;
 }
 
 #endif // LINE_FOLLOW_H

@@ -8,8 +8,8 @@
 #include "WaveshareIMU.h"
 
 static int LF_SPEED[4] = {60, 60, 60, 60};
-static int BK_SPEED[4] = {0, 0, 60, 60};
-// static int FR_SPEED[4] = {60, 60, 0, 0};
+static int BK_SPEED[4] = {50, 50, 60, 60};
+static int FR_SPEED[4] = {60, 60, 50, 50};
 // static int RI_SPEED[4] = {0, 60, 0, 60};
 // static int LE_SPEED[4] = {60, 0, 60, 0};
 
