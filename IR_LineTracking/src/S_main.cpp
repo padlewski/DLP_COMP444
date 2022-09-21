@@ -11,11 +11,20 @@
 
 void handleRequest(void);
 void handleReceive(int);
+static byte LED = DD5;
+static bool on = false;
+
+void setLed() {
+    on = !on;
+    if (on) digitalWrite(LED, HIGH);
+    else digitalWrite(LED, LOW);
+}
 
 void setup() {
     Wire.begin(NANO_ADDR);         // set address for device
     Wire.onRequest(handleRequest);  // register request handler
     Wire.onReceive(handleReceive);  // register receive handler
+    pinMode(LED, OUTPUT);
 }
 
 void loop() {
@@ -24,6 +33,7 @@ void loop() {
 
 // Data is being requested
 void handleRequest() {
+    setLed();
     switch(registerCurrent) {
         case NANO_NODE_SET:
         case NANO_LAST_IDX:
@@ -37,7 +47,9 @@ void handleRequest() {
 // Data is being received
 void handleReceive(int count) {
     static byte buffer[PG_SIZE] = {0};
-    static byte i = 0;
+    static byte i;
+    setLed();
+    i = 0;
     while(Wire.available()) {
         buffer[i++] = Wire.read();
         //TODO: Shouldn't get over 32 bytes, but could handle just in case
